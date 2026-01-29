@@ -1,74 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-pt">
 <head>
-    <meta charset="UTF-8">
-    <title>TV Player Fixo</title>
-    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
-    <style>
-        body { margin: 0; display: flex; background: #000; height: 100vh; font-family: sans-serif; }
-        #player-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; }
-        #sidebar { width: 150px; background: #111; overflow-y: auto; padding: 10px; border-left: 1px solid #333; }
-        .canal-btn { 
-            width: 100%; height: 80px; background: #222; margin-bottom: 10px; 
-            border-radius: 8px; cursor: pointer; display: flex; align-items: center; 
-            justify-content: center; transition: 0.2s; border: none;
-        }
-        .canal-btn:hover { background: #333; }
-        .canal-btn img { max-width: 80%; max-height: 80%; pointer-events: none; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>VIBE TV - Premium Center</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --neon-green: #00ff88; --dark-bg: #0a0a0a; --card-bg: #161616; }
+        
+        body { background-color: var(--dark-bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+        
+        .header-vibe { padding: 25px 0; border-bottom: 1px solid #222; margin-bottom: 20px; }
+        .header-vibe h1 { font-weight: 800; color: var(--neon-green); text-transform: uppercase; letter-spacing: -2px; margin: 0; }
+
+        /* Fix para o vídeo não desaparecer (Ouve-se e Vê-se!) */
+        #player-wrapper { 
+            background: #000; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,1); border: 1px solid #333;
+            margin-bottom: 30px; position: relative;
+            width: 100%; height: 500px; /* Altura fixa para evitar som sem imagem */
+        }
+
+        #player { width: 100%; height: 100%; }
+
+        /* Grelha de Canais Estilo Netflix */
+        .channel-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+            gap: 15px; padding-bottom: 50px;
+        }
+
+        .channel-card {
+            background: var(--card-bg); border: 1px solid #222; border-radius: 10px;
+            padding: 15px; cursor: pointer; transition: 0.3s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .channel-card:hover {
+            border-color: var(--neon-green); transform: scale(1.05);
+            background: #202020; box-shadow: 0 5px 15px rgba(0,255,136,0.2);
+        }
+
+        .channel-card img { width: 100%; height: 65px; object-fit: contain; margin-bottom: 8px; }
+        .channel-card span { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; text-align: center; }
+        .channel-card:hover span { color: #fff; }
+
+        @media (max-width: 768px) { #player-wrapper { height: 250px; } }
+    </style>
 </head>
 <body>
 
-    <div id="player-container">
-        <div id="video-player" style="width: 100%; height: 100%;"></div>
-    </div>
+<div class="container py-2">
+    <div class="header-vibe text-center">
+        <h1>VIBE TV <span class="fs-6 text-white-50">MASTER HUB</span></h1>
+    </div>
 
-    <div id="sidebar" id="lista">
-        </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div id="player-wrapper">
+                <div id="player"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="channel-grid" id="grid">
+        </div>
+</div>
 
 <script>
-    const canais = [
-        { n: "RTP 1", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png", u: "https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8" },
-        { n: "RTP 2", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png", u: "https://streaming-live.rtp.pt/liverepeater/rtp2HD.smil/playlist.m3u8" },
-        { n: "SIC", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png", u: "https://d1zx6l1dn8vaj5.cloudfront.net/out/v1/b89cc37caa6d418eb423cf092a2ef970/index.m3u8" },
-        { n: "CNN Portugal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CNN-Portugal.png", u: "https://video-auth7.iol.pt/live_cnn/live_cnn/playlist.m3u8" },
-        { n: "Porto Canal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Porto-Canal.png", u: "https://pull-live-156-1.global.ssl.fastly.net/pc5865dc25400thmb-ea6bf03b14fa318f7133/pc1-jhrgyuoqe5865db-68tkgb14fa318f7133f03.smil/playlist.m3u8" }
-        // ... podes adicionar os outros aqui seguindo o mesmo padrão
-    ];
+    // DADOS DOS CANAIS (Baseados na tua lista M3U)
+    const canais = [
+        { n: "RTP 1", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png", u: "https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8" },
+        { n: "RTP 2", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png", u: "https://streaming-live.rtp.pt/liverepeater/rtp2HD.smil/playlist.m3u8" },
+        { n: "SIC", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png", u: "https://d1zx6l1dn8vaj5.cloudfront.net/out/v1/b89cc37caa6d418eb423cf092a2ef970/index.m3u8" },
+        { n: "TVI", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png", u: "https://tvi.iol.pt/live/tvi.m3u8" },
+        { n: "RTP Notícias", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/rtpnoticias.png", u: "https://streaming-live.rtp.pt/liverepeater/smil:rtpnHD.smil/playlist.m3u8" },
+        { n: "SIC Notícias", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC-Notícias.png", u: "https://sicnot.live.impresa.pt/sicnot.m3u8" },
+        { n: "CNN Portugal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CNN-Portugal.png", u: "https://tvi.iol.pt/live/cnn.m3u8" },
+        { n: "RTP Memória", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-Memória.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpmem.smil/playlist.m3u8" },
+        { n: "V+ TVI", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/vmaistvi.png", u: "https://video-auth2.iol.pt/live_vmais/live_vmais/edge_servers/vmais-720p/playlist.m3u8" },
+        { n: "TVI Ficção", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI-Ficção.png", u: "https://video-auth1.iol.pt/live_tvi_ficcao/live_tvi_ficcao/edge_servers/tvificcao-720p/playlist.m3u8" },
+        { n: "Porto Canal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Porto-Canal.png", u: "https://pull-live-156-1.global.ssl.fastly.net/pc5865dc25400thmb-ea6bf03b14fa318f7133/pc1-jhrgyuoqe5865db-68tkgb14fa318f7133f03.smil/playlist.m3u8" },
+        { n: "Euronews PT", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://38cf202f635c4e6d9a9ecd1dc805222a.mediatailor.eu-west-1.amazonaws.com/v1/manifest/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6572/aa7d84c5-ed1b-4706-aa89-11c525faf07d/5.m3u8" },
+        { n: "ARTV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/ARTV.png", u: "https://playout175.livextend.cloud/livenlin4/_definst_/2liveartvpub2/playlist.m3u8" },
+        { n: "Sky News", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Sky-News.png", u: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_1080_30/Live/channel(skynews)/index_1080-30.m3u8" },
+        { n: "TV Cultura", l: "https://i.ibb.co/nm0jXMM/cultura-3x.png", u: "https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8" },
+        { n: "La 1 (ES)", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/La1.png", u: "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8" }
+    ];
 
-    let player;
+    const grid = document.getElementById('grid');
+    
+    // Criação dos Cards
+    canais.forEach((c, index) => {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+        card.onclick = () => mudarCanal(c.u);
+        card.innerHTML = `<img src="${c.l}" onerror="this.src='https://via.placeholder.com/100?text=TV'"><span>${c.n}</span>`;
+        grid.appendChild(card);
+    });
 
-    function mudarCanal(url) {
-        // 1. Limpa o que estiver dentro da div do player (O SEGREDO!)
-        document.getElementById('video-player').innerHTML = "";
-        
-        // 2. Cria o player do zero
-        player = new Clappr.Player({
-            source: url,
-            parentId: "#video-player",
-            width: "100%",
-            height: "100%",
-            autoPlay: true,
-            mute: false
-        });
-    }
+    // Configuração do Player Blindada
+    var player = new Clappr.Player({
+        source: canais[0].u,
+        parentId: "#player",
+        width: "100%",
+        height: "100%",
+        autoPlay: false,
+        playback: {
+            hlsjsConfig: {
+                xhrSetup: function(xhr) { xhr.withCredentials = false; }
+            }
+        }
+    });
 
-    // Criar os botões na barra lateral
-    const sidebar = document.getElementById('sidebar');
-    canais.forEach(c => {
-        const btn = document.createElement('button');
-        btn.className = 'canal-btn';
-        btn.onclick = () => mudarCanal(c.u);
-        
-        const img = document.createElement('img');
-        img.src = c.l;
-        
-        btn.appendChild(img);
-        sidebar.appendChild(btn);
-    });
-
-    // Carregar o primeiro canal mal a página abre
-    mudarCanal(canais[0].u);
+    function mudarCanal(url) {
+        player.load(url);
+        player.play();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 </script>
 
 </body>
