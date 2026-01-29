@@ -2,87 +2,75 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="referrer" content="no-referrer"> <title>Vibe TV - Clappr Edition</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <title>Vibe TV - Central M3UPT</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
     <style>
-        body { background: #0a0a0a; color: #00ffcc; font-family: 'Arial', sans-serif; margin: 0; padding: 20px; text-align: center; }
-        h1 { text-shadow: 2px 2px #ff0055; font-size: 2.5em; }
+        body { background: #121212; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        h1 { color: #00ff88; text-transform: uppercase; letter-spacing: 2px; }
         
-        #player { 
-            width: 90%; max-width: 850px; margin: 20px auto; 
-            border: 5px solid #1a1a1a; box-shadow: 0 0 20px #00ffcc;
-            background: #000;
+        #player-container { 
+            background: #000; border: 3px solid #333; border-radius: 15px; 
+            overflow: hidden; margin: 0 auto 30px; width: 90%; max-width: 900px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .grid-canais { 
-            display: flex; flex-wrap: wrap; justify-content: center; 
-            gap: 15px; margin-top: 30px; 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 15px; max-width: 1000px; margin: 0 auto; 
         }
 
-        .canal-card { 
-            background: #1a1a1a; border-radius: 12px; padding: 10px; width: 110px;
-            cursor: pointer; transition: 0.3s; border: 1px solid #333;
+        .canal-btn { 
+            background: #1e1e1e; border: 1px solid #333; border-radius: 8px; 
+            padding: 10px; cursor: pointer; transition: all 0.2s ease;
         }
 
-        .canal-card:hover { transform: scale(1.1); border-color: #ff0055; background: #222; }
-        .canal-card img { width: 80px; height: 80px; object-fit: contain; pointer-events: none; }
-        .canal-card p { font-size: 0.8em; margin-top: 5px; font-weight: bold; color: #fff; }
+        .canal-btn:hover { background: #333; transform: translateY(-5px); border-color: #00ff88; }
+        .canal-btn img { width: 100%; height: 60px; object-fit: contain; margin-bottom: 5px; }
+        .canal-btn span { font-size: 12px; font-weight: bold; display: block; }
     </style>
 </head>
 <body>
 
-    <h1>⚡ VIBE TV PLAYER ⚡</h1>
+    <h1>📺 Central Vibe TV</h1>
+    <p>Fonte de dados: M3UPT (IPTV Legal)</p>
 
-    <div id="player"></div>
-
-    <div class="grid-canais">
-        <div class="canal-card" onclick="mudarCanal('https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8')">
-            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png" alt="RTP 1">
-            <p>RTP 1</p>
-        </div>
-
-        <div class="canal-card" onclick="mudarCanal('https://streaming-live.rtp.pt/liverepeater/smil:rtp2HD.smil/playlist.m3u8')">
-            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png" alt="RTP 2">
-            <p>RTP 2</p>
-        </div>
-
-        <div class="canal-card" onclick="mudarCanal('https://sic.pt-streaming.com/sic/index.m3u8')">
-            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png" alt="SIC">
-            <p>SIC</p>
-        </div>
-
-        <div class="canal-card" onclick="mudarCanal('https://tvi.iol.pt/live/tvi.m3u8')">
-            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png" alt="TVI">
-            <p>TVI</p>
-        </div>
-        
-        <div class="canal-card" onclick="mudarCanal('https://tvi.iol.pt/live/tvi_ficcao.m3u8')">
-            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVIFICCAO.png" alt="TVI Ficção">
-            <p>TVI Ficção</p>
-        </div>
+    <div id="player-container">
+        <video id="vibe-player" class="video-js vjs-big-play-centered vjs-16-9" controls preload="auto" data-setup="{}">
+            <source src="https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8" type="application/x-mpegURL">
+        </video>
     </div>
 
-    <script>
-        // Inicialização do Player
-        var player = new Clappr.Player({
-            source: "https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8",
-            parentId: "#player",
-            width: "100%",
-            height: "480px",
-            autoPlay: false,
-            mute: false,
-            shakaConfiguration: {
-                manifest: { retryParameters: { maxAttempts: Infinity } },
-                streaming: { retryParameters: { maxAttempts: Infinity } }
-            },
-            playback: { hlsjsConfig: { xhrSetup: function(xhr, url) { xhr.withCredentials = false; } } }
-        });
+    <div class="grid-canais">
+        <div class="canal-btn" onclick="mudar('https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png" alt="RTP 1">
+            <span>RTP 1</span>
+        </div>
 
-        function mudarCanal(url) {
-            player.load(url);
+        <div class="canal-btn" onclick="mudar('https://streaming-live.rtp.pt/liverepeater/smil:rtp2HD.smil/playlist.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png" alt="RTP 2">
+            <span>RTP 2</span>
+        </div>
+
+        <div class="canal-btn" onclick="mudar('https://sic.pt-streaming.com/sic/index.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png" alt="SIC">
+            <span>SIC</span>
+        </div>
+
+        <div class="canal-btn" onclick="mudar('https://tvi.iol.pt/live/tvi.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png" alt="TVI">
+            <span>TVI</span>
+        </div>
+        
+        </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script>
+        var player = videojs('vibe-player');
+
+        function mudar(url) {
+            player.src({ type: 'application/x-mpegURL', src: url });
             player.play();
         }
     </script>
-
 </body>
 </html>
