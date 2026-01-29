@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer"> <title>Vibe TV - Clappr Edition</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <style>
+        body { background: #0a0a0a; color: #00ffcc; font-family: 'Arial', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        h1 { text-shadow: 2px 2px #ff0055; font-size: 2.5em; }
+        
+        #player { 
+            width: 90%; max-width: 850px; margin: 20px auto; 
+            border: 5px solid #1a1a1a; box-shadow: 0 0 20px #00ffcc;
+            background: #000;
+        }
+
+        .grid-canais { 
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 15px; margin-top: 30px; 
+        }
+
+        .canal-card { 
+            background: #1a1a1a; border-radius: 12px; padding: 10px; width: 110px;
+            cursor: pointer; transition: 0.3s; border: 1px solid #333;
+        }
+
+        .canal-card:hover { transform: scale(1.1); border-color: #ff0055; background: #222; }
+        .canal-card img { width: 80px; height: 80px; object-fit: contain; pointer-events: none; }
+        .canal-card p { font-size: 0.8em; margin-top: 5px; font-weight: bold; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ VIBE TV PLAYER ⚡</h1>
+
+    <div id="player"></div>
+
+    <div class="grid-canais">
+        <div class="canal-card" onclick="mudarCanal('https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png" alt="RTP 1">
+            <p>RTP 1</p>
+        </div>
+
+        <div class="canal-card" onclick="mudarCanal('https://streaming-live.rtp.pt/liverepeater/smil:rtp2HD.smil/playlist.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png" alt="RTP 2">
+            <p>RTP 2</p>
+        </div>
+
+        <div class="canal-card" onclick="mudarCanal('https://sic.pt-streaming.com/sic/index.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png" alt="SIC">
+            <p>SIC</p>
+        </div>
+
+        <div class="canal-card" onclick="mudarCanal('https://tvi.iol.pt/live/tvi.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png" alt="TVI">
+            <p>TVI</p>
+        </div>
+        
+        <div class="canal-card" onclick="mudarCanal('https://tvi.iol.pt/live/tvi_ficcao.m3u8')">
+            <img src="https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVIFICCAO.png" alt="TVI Ficção">
+            <p>TVI Ficção</p>
+        </div>
+    </div>
+
+    <script>
+        // Inicialização do Player
+        var player = new Clappr.Player({
+            source: "https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8",
+            parentId: "#player",
+            width: "100%",
+            height: "480px",
+            autoPlay: false,
+            mute: false,
+            shakaConfiguration: {
+                manifest: { retryParameters: { maxAttempts: Infinity } },
+                streaming: { retryParameters: { maxAttempts: Infinity } }
+            },
+            playback: { hlsjsConfig: { xhrSetup: function(xhr, url) { xhr.withCredentials = false; } } }
+        });
+
+        function mudarCanal(url) {
+            player.load(url);
+            player.play();
+        }
+    </script>
+
+</body>
+</html>
