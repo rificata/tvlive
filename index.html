@@ -4,231 +4,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>VIBE TV - Premium</title>
+    <title>TV Player</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clappr-youtube-playback@latest/dist/clappr-youtube-playback.min.js"></script>
     
     <style>
-        /* CONFIGURAÇÕES GERAIS */
         :root { 
-            --neon-green: #00ff88; 
-            --dark-bg: #0a0a0a; 
-            --sidebar-bg: #111; 
-            --hover-bg: #222;
+            --bg-color: #000;
+            --sidebar-bg: #101010;
+            --highlight: #222;
         }
         
         * { box-sizing: border-box; }
 
         body { 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--dark-bg); 
-            color: #fff; 
-            font-family: 'Inter', sans-serif;
-            height: 100vh; /* Ocupa 100% da altura do ecrã */
-            overflow: hidden; /* IMPEDE scroll na página inteira */
+            margin: 0; padding: 0; 
+            background-color: var(--bg-color); 
+            height: 100vh; 
+            overflow: hidden; /* Sem scroll na página */
             display: flex;
-            flex-direction: column;
-        }
-
-        /* LAYOUT PRINCIPAL */
-        #app-container {
-            display: flex;
-            height: 100%;
-            width: 100%;
+            font-family: sans-serif;
         }
 
         /* ÁREA DO PLAYER (ESQUERDA) */
-        #player-section {
+        #player-wrapper {
             flex: 1; /* Ocupa todo o espaço disponível */
+            height: 100%;
             background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
-        #player { 
-            width: 100%; 
-            height: 100%; 
-        }
-
-        /* BARRA LATERAL (DIREITA) */
+        /* ÁREA DOS CANAIS (DIREITA) */
         #sidebar {
-            width: 320px; /* Largura fixa para a lista */
+            width: 140px; /* Largura fixa apenas para os logos */
             background: var(--sidebar-bg);
-            border-left: 1px solid #333;
-            display: flex;
-            flex-direction: column;
+            border-left: 1px solid #222;
             height: 100%;
+            overflow-y: auto; /* Scroll apenas aqui */
+            padding: 10px;
         }
 
-        /* Cabeçalho da Lista */
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #333;
-            background: var(--sidebar-bg);
-            z-index: 10;
+        /* Scrollbar discreta */
+        #sidebar::-webkit-scrollbar { width: 5px; }
+        #sidebar::-webkit-scrollbar-track { background: #000; }
+        #sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        /* GRELHA DE LOGOS */
+        .channel-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Uma coluna de logos grandes */
+            gap: 10px;
         }
 
-        .sidebar-header h2 {
-            margin: 0;
-            font-size: 18px;
-            color: var(--neon-green);
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
-
-        /* Lista de Canais com SCROLL APENAS AQUI */
-        .channel-list {
-            flex: 1; /* Ocupa o resto da altura da sidebar */
-            overflow-y: auto; /* Scroll vertical ativo */
-            padding: 15px;
-        }
-
-        /* Scrollbar personalizada */
-        .channel-list::-webkit-scrollbar { width: 6px; }
-        .channel-list::-webkit-scrollbar-track { background: #111; }
-        .channel-list::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-        /* CARDS DOS CANAIS */
         .channel-item {
+            width: 100%;
+            height: 80px; /* Altura fixa para o botão */
+            background: #1a1a1a;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            cursor: pointer;
+            justify-content: center;
             transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
 
         .channel-item:hover {
-            background: var(--hover-bg);
-            border-color: var(--neon-green);
-            transform: translateX(5px);
+            background: #252525;
+            border-color: #555;
+            transform: scale(1.02);
         }
 
+        /* O logo ajusta-se automaticamente */
         .channel-item img {
-            width: 40px;
-            height: 40px;
+            max-width: 80%;
+            max-height: 80%;
             object-fit: contain;
-            margin-right: 15px;
+            pointer-events: none;
         }
 
-        .channel-item span {
-            font-size: 14px;
-            font-weight: 700;
-            color: #ddd;
-        }
-
-        /* RESPONSIVIDADE (MOBILE) */
-        @media (max-width: 900px) {
-            #app-container {
-                flex-direction: column; /* Muda para vertical em telemóveis */
+        /* RESPONSIVIDADE MOBILE */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            
+            #player-wrapper { 
+                height: 40vh; 
+                flex: none; 
             }
-
-            #player-section {
-                height: 40vh; /* Player ocupa 40% da altura */
-                flex: none; /* Remove o flex grow para fixar a altura */
-            }
-
-            #sidebar {
-                width: 100%; /* Sidebar ocupa toda a largura */
-                height: 60vh; /* Restante altura */
+            
+            #sidebar { 
+                width: 100%; 
+                height: 60vh;
                 border-left: none;
                 border-top: 1px solid #333;
             }
+
+            .channel-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
             
-            .channel-list {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Grelha em mobile */
-                gap: 10px;
-            }
-
-            .channel-item {
-                flex-direction: column;
-                text-align: center;
-                padding: 15px;
-            }
-
-            .channel-item img { margin: 0 0 10px 0; }
+            .channel-item { height: 70px; }
         }
     </style>
 </head>
 <body>
 
-<div id="app-container">
-    <div id="player-section">
+    <div id="player-wrapper">
         <div id="player"></div>
     </div>
 
     <div id="sidebar">
-        <div class="sidebar-header">
-            <h2>VIBE TV</h2>
-        </div>
-        <div class="channel-list" id="lista-canais">
-            </div>
+        <div class="channel-grid" id="lista-canais"></div>
     </div>
-</div>
 
 <script>
-    // LISTA DE CANAIS
+    // Configuração dos Canais (Extraídos da tua lista M3U)
     const canais = [
         { n: "RTP 1", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP1.png", u: "https://streaming-live.rtp.pt/liverepeater/smil:rtp1HD.smil/playlist.m3u8" },
         { n: "RTP 2", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP2.png", u: "https://streaming-live.rtp.pt/liverepeater/rtp2HD.smil/playlist.m3u8" },
         { n: "SIC", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC.png", u: "https://d1zx6l1dn8vaj5.cloudfront.net/out/v1/b89cc37caa6d418eb423cf092a2ef970/index.m3u8" },
-        { n: "TVI", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png", u: "https://tvi.iol.pt/live/tvi.m3u8" },
+        { n: "TVI", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI.png", u: "https://video-auth6.iol.pt/live_tvi/live_tvi/playlist.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9MS8yOS8yMDI2IDEwOjExOjE1IFBNJmhhc2hfdmFsdWU9U0QzNTd0K08zd0V6ZGpldzV5K3hzdz09JnZhbGlkbWludXRlcz0xNDQwJmlkPTNkOTcyNzRkLTFkOGUtNDhjNi1iZDQ0LTEyZTFhMWFkODE3Nw==/" },
         { n: "RTP Notícias", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/rtpnoticias.png", u: "https://streaming-live.rtp.pt/liverepeater/smil:rtpnHD.smil/playlist.m3u8" },
         { n: "SIC Notícias", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC-Notícias.png", u: "https://sicnot.live.impresa.pt/sicnot.m3u8" },
-        { n: "CNN Portugal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CNN-Portugal.png", u: "https://tvi.iol.pt/live/cnn.m3u8" },
+        { n: "CNN Portugal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CNN-Portugal.png", u: "https://video-auth7.iol.pt/live_cnn/live_cnn/playlist.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9MS8yOS8yMDI2IDEwOjExOjE1IFBNJmhhc2hfdmFsdWU9QTJGSjRXQzBUZS9uOVhac2VGMlVRUT09JnZhbGlkbWludXRlcz0xNDQwJmlkPTgyY2VhYTdmLWU2ZDQtNDcxOC1iODk3LWFjOGY4Njc0ZjYyYw==/" },
+        { n: "CNN Brasil", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CNN-Brasil.png", u: "https://d25usgadhphvwi.cloudfront.net/hls/main.m3u8" },
+        { n: "Euronews PT", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://38cf202f635c4e6d9a9ecd1dc805222a.mediatailor.eu-west-1.amazonaws.com/v1/manifest/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6572/aa7d84c5-ed1b-4706-aa89-11c525faf07d/5.m3u8" },
+        { n: "ARTV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/ARTV.png", u: "https://playout175.livextend.cloud/livenlin4/_definst_/2liveartvpub2/playlist.m3u8" },
         { n: "RTP Memória", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-Memória.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpmem.smil/playlist.m3u8" },
+        { n: "RTP Açores", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-Açores.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpacoresHD.smil/playlist.m3u8" },
+        { n: "RTP Madeira", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-Madeira.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpmadeira.smil/playlist.m3u8" },
+        { n: "RTP África", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-África.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpafrica.smil/playlist.m3u8" },
+        { n: "RTP Internacional", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RTP-Internacional.png", u: "https://streaming-live.rtp.pt/liverepeater/rtpi.smil/playlist.m3u8" },
+        { n: "TVI Internacional", l: "https://github.com/LITUATUI/M3UPT/raw/main/logos/TVI-Internacional.png", u: "https://video-auth6.iol.pt/live_tvi_internacional/live_tvi_internacional/playlist.m3u8?wmsAuthSign=c2VydmVyX3RpbWU9MS8yOS8yMDI2IDEwOjExOjE2IFBNJmhhc2hfdmFsdWU9UGFhVndjamVvN1hUNlpDS2g5T2FvUT09JnZhbGlkbWludXRlcz0xNDQwJmlkPTIyOGU5MzA2LWQ2ZDktNDQ3MC04ZmNlLTlkOWVmYmE3MzU1Ng==/" },
+        { n: "TVI África", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI_África.png", u: "https://video-auth4.iol.pt/live_tvi_africa/live_tvi_africa/edge_servers/tviafrica-480p/playlist.m3u8" },
         { n: "V+ TVI", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/vmaistvi.png", u: "https://video-auth2.iol.pt/live_vmais/live_vmais/edge_servers/vmais-720p/playlist.m3u8" },
         { n: "TVI Ficção", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI-Ficção.png", u: "https://video-auth1.iol.pt/live_tvi_ficcao/live_tvi_ficcao/edge_servers/tvificcao-720p/playlist.m3u8" },
+        { n: "TVI Reality", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVI-Reality.png", u: "https://video-auth4.iol.pt/live_tvi_reality/live_tvi_reality/edge_servers/tvireality-720_passthrough/playlist.m3u8" },
+        { n: "SIC Replay", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC-Replay.png", u: "https://production-fast-sic.content.okast.tv/fa2e8c4385712f9a7dce4ff2dcebac2e/channels/d9070446-8448-455e-8075-773b1ba12562/d47eae0f-ad77-414a-9a1d-2a6628ba18c3/media_.m3u8" },
+        { n: "SIC Alta Definição", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/SIC-Alta-Definição.png", u: "https://production-fast-sic.content.okast.tv/fa2e8c4385712f9aa54bbe52b1bd9b6b/channels/d9070446-8448-455e-8075-773b1ba12562/fc831b20-f252-4e7d-8cc5-2d05f4d43c1c/media_.m3u8" },
         { n: "Porto Canal", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Porto-Canal.png", u: "https://pull-live-156-1.global.ssl.fastly.net/pc5865dc25400thmb-ea6bf03b14fa318f7133/pc1-jhrgyuoqe5865db-68tkgb14fa318f7133f03.smil/playlist.m3u8" },
-        { n: "Euronews PT", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://38cf202f635c4e6d9a9ecd1dc805222a.mediatailor.eu-west-1.amazonaws.com/v1/manifest/0547f18649bd788bec7b67b746e47670f558b6b2/production-LiveChannel-6572/aa7d84c5-ed1b-4706-aa89-11c525faf07d/5.m3u8" },
-        { n: "Sky News", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Sky-News.png", u: "https://linear417-gb-hls1-prd-ak.cdn.skycdp.com/100e/Content/HLS_001_1080_30/Live/channel(skynews)/index_1080-30.m3u8" },
+        { n: "Fama TV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Fama-TV.jpg", u: "https://tv2.fastcast4u.com:3310/live/famatvlive.m3u8" },
+        { n: "RecordTV Europa", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Record-TV.png", u: "https://viamotionhsi.netplus.ch/live/eds/rederecordinternacional/browser-HLS8/rederecordinternacional.m3u8" },
+        { n: "BraziTV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/BraziTV.png", u: "https://cbtvnow.com:5866/hls/livest2024.m3u8" },
+        { n: "TV Câmara", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TV-camara.png", u: "https://stream3.camara.gov.br/tv1/manifest.m3u8" },
         { n: "TV Cultura", l: "https://i.ibb.co/nm0jXMM/cultura-3x.png", u: "https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8" },
-        { n: "La 1 (ES)", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/La1.png", u: "https://rtvelivestream.rtve.es/rtvesec/la1/la1_main_dvr.m3u8" }
-    ];
-
-    const containerLista = document.getElementById('lista-canais');
-    
-    // 1. Inicializar Player
-    var player = new Clappr.Player({
-        source: canais[0].u,
-        parentId: "#player",
-        width: "100%",
-        height: "100%",
-        autoPlay: true, // Tenta autoplay
-        mute: false,
-        playback: {
-            hlsjsConfig: {
-                xhrSetup: function(xhr) { xhr.withCredentials = false; }
-            }
-        }
-    });
-
-    // 2. Gerar Lista
-    canais.forEach((canal) => {
-        const item = document.createElement('div');
-        item.className = 'channel-item';
-        item.onclick = () => {
-            player.load(canal.u);
-            player.play();
-        };
-        
-        item.innerHTML = `
-            <img src="${canal.l}" onerror="this.src='https://via.placeholder.com/40?text=TV'">
-            <span>${canal.n}</span>
-        `;
-        
-        containerLista.appendChild(item);
-    });
-
-</script>
-
-</body>
-</html>
+        { n: "AgroBrasil TV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/AgroBrasil-TV.png", u: "https://live.agrobrasiltv.com.br/memfs/0f1f8f3d-96cb-4792-babe-c2169f30a577_output_0.m3u8" },
+        { n: "TDM Macau (PT)", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TDM-Teledifusão_de_Macau.png", u: "https://globallive.tdm.com.mo/ch2/ch2.live/playlist.m3u8" },
+        { n: "TDM Macau (CN)", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TDM-Teledifusão_de_Macau.png", u: "https://globallive.tdm.com.mo/ch1/ch1.live/playlist.m3u8" },
+        { n: "TV Zimbo", l: "https://i.imgur.com/SFD8CBh.png", u: "https://sgn-cdn-video.vods2africa.com/Tv-Zimbo/index.fmp4.m3u8" },
+        { n: "TVM", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVM.png", u: "http://online.tvm.co.mz:1935/live/Channel1.smil/playlist.m3u8" },
+        { n: "TVM Internacional", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/TVMI.png", u: "http://online.tvm.co.mz:1935/live/Channel2.smil/playlist.m3u8" },
+        { n: "Muzangala TV", l: "https://i.imgur.com/fBeaJoS.png", u: "https://5cf4a2c2512a2.streamlock.net/tvmuzangala/tvmuzangala/playlist.m3u8" },
+        { n: "Darkflix", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Darkflix.png", u: "https://video01.soultv.com.br/darkflix/darkflix/playlist.m3u8" },
+        { n: "Cinemonde", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Cinemonde.png", u: "https://video01.soultv.com.br/cinemonde/cinemonde/playlist.m3u8" },
+        { n: "MyTime Movie", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/My-Time-Movie-Network.png", u: "https://appletree-mytime-samsungbrazil.amagi.tv/playlist.m3u8" },
+        { n: "MovieSphere", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/MovieSphere.jpg", u: "https://moviesphereuk-samsunguk.amagi.tv/1080p-vtt/index.m3u8" },
+        { n: "Rakuten Viki", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Rakuten_Viki.png", u: "https://fd18f1cadd404894a31a3362c5f319bd.mediatailor.us-east-1.amazonaws.com/v1/master/04fd913bb278d8775298c26fdca9d9841f37601f/RakutenTV-eu_RakutenViki-1/playlist.m3u8" },
+        { n: "Shemaroo Bollywood", l: "https://i.imgur.com/TFxLj80.png", u: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00864-shemarooenterta-shemabollywood-ono/playlist.m3u8" },
+        { n: "Real Wild", l: "https://i.imgur.com/T9HHmAO.png", u: "https://lds-realwild-vizio.amagi.tv/playlist.m3u8" },
+        { n: "Italian Fishing TV", l: "https://i.imgur.com/qrn6tUO.png", u: "https://fms.premio.link/fishingtv/playlist.m3u8" },
+        { n: "Euronews EN", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://www.youtube.com/watch?v=pykpO5kQJ98" },
+        { n: "Euronews ES", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://www.youtube.com/live/O9mOtdZ-nSk" },
+        { n: "Euronews IT", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://www.youtube.com/live/pUcmpyynASM" },
+        { n: "Euronews FR", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://www.youtube.com/live/NiRIbKwAejk" },
+        { n: "Euronews DE", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/euronews-logo-225x225.png", u: "https://www.youtube.com/live/CQ3KsEbsYHs" },
+        { n: "teleSUR", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Telesur.png", u: "https://mblesmain01.telesur.ultrabase.net/mbliveMain/hd/playlist.m3u8" },
+        { n: "HispanTV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/HispanTV.png", u: "https://live.presstv.ir/hls/hispantv.m3u8" },
+        { n: "Press TV", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Press-TV.png", u: "https://live.presstv.ir/hls/presstv.m3u8" },
+        { n: "Free Speech", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Free-Speech-TV.webp", u: "https://edge.fstv-live-linear-channel.top.comcast.net/Content/HLS_HLSv3/Live/channel(b168a609-19c1-2203-ae1d-6b9726f05e67)/index.m3u8" },
+        { n: "RT News", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/RT-News.png", u: "https://rumble-foxo.cdn.rumble.cloud/live/hr6yv36f/slot-4/mxtm-wdfe_1080p/playlist.m3u8" },
+        { n: "CGTN", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CGTN.png", u: "https://english-livetx.cgtn.com/hls/yypdyyctzb_hd.m3u8" },
+        { n: "CGTN Español", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CGTN-Español.png", u: "https://espanol-livews.cgtn.com/hls/LSveOGBaBw41Ea7ukkVAUdKQ220802LSTexu6xAuFH8VZNBLE1ZNEa220802cd/playlist.m3u8" },
+        { n: "CGTN Français", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/CGTN-Français.png", u: "https://francais-livews.cgtn.com/hls/LSvev95OuFZtKLc6CeKEFYXj220802LSTeV6PO0Ut9r71Uq3k5goCA220802cd/playlist.m3u8" },
+        { n: "Al Jazeera", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/Al-Jazeera.png", u: "https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8" },
+        { n: "France 24 EN", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/France-24.png", u: "https://live.france24.com/hls/live/2037218/F24_EN_HI_HLS/master_5000.m3u8" },
+        { n: "France 24 ES", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/France-24.png", u: "https://live.france24.com/hls/live/2037220/F24_ES_HI_HLS/master_5000.m3u8" },
+        { n: "France 24 FR", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/France-24.png", u: "https://live.france24.com/hls/live/2037179/F24_FR_HI_HLS/master_5000.m3u8" },
+        { n: "France 24 AR", l: "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/logos/France-24.png", u: "
