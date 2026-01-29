@@ -20,15 +20,28 @@ window.onload = () => {
 
         div.innerHTML = `<img src="${ch.logo}" alt="${ch.name}">`;
 
-        div.onclick = () => {
-            if (ch.type === "youtube") {
-                loadYouTube(ch.url);
-            } else {
-                unloadYouTube();
-                player.src = ch.url;
-                player.play();
-            }
-        };
+div.onclick = () => {
+    if (ch.type === "youtube") {
+        loadYouTube(ch.url);
+        return;
+    }
+
+    unloadYouTube();
+
+    const video = document.getElementById("tv-player");
+
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        video.play();
+    } else {
+        // fallback para Safari
+        video.src = ch.url;
+        video.play();
+    }
+};
+
 
         list.appendChild(div);
     });
