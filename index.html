@@ -15,7 +15,7 @@
     <script>
         let epg = {};
 
-        fetch("https://raw.githubusercontent.com/LITUATUI/M3UPT/main/epg/epg.json")
+        fetch("https://raw.githubusercontent.com/LITUATUI/M3UPT/main/epg/epg.xml")
             .then(r => r.json())
             .then(data => epg = data)
             .catch(() => console.log("Falha ao carregar EPG"));
