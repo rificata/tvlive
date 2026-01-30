@@ -12,14 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <!-- EPG Loader -->
-    <script>
-        let epg = {};
+<script>
+    let epg = {};
 
-        fetch("https://raw.githubusercontent.com/LITUATUI/M3UPT/main/epg/epg.xml")
-            .then(r => r.json())
-            .then(data => epg = data)
-            .catch(() => console.log("Falha ao carregar EPG"));
-    </script>
+    fetch("https://m3upt.com/epg")
+        .then(r => r.text())
+        .then(xmlText => {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(xmlText, "text/xml");
+            epg = parseEPG(xml);
+        })
+        .catch(() => console.log("Falha ao carregar EPG"));
+</script>
+
 </head>
 
 <body>
