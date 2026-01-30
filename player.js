@@ -14,6 +14,7 @@ window.onload = () => {
             const parser = new DOMParser();
             const xml = parser.parseFromString(xmlText, "text/xml");
             epg = parseEPG(xml);
+            console.log("EPG carregado:", epg);
         })
         .catch(() => console.log("Falha ao carregar EPG"));
 
@@ -24,15 +25,18 @@ window.onload = () => {
         const programs = {};
         const items = xml.getElementsByTagName("programme");
 
-        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
 
         for (let p of items) {
             const channel = p.getAttribute("channel");
-            const start = p.getAttribute("start");
+            const start = p.getAttribute("start"); // ex: 20260130060000 +0000
             const stop = p.getAttribute("stop");
 
+            const startDate = start.substring(0, 8); // YYYYMMDD
+
             // Filtrar só o dia de hoje
-            if (!start.startsWith(today.replace(/-/g, ""))) continue;
+            if (startDate !== todayStr) continue;
 
             const titleNode = p.getElementsByTagName("title")[0];
             const title = titleNode ? titleNode.textContent : "Sem título";
@@ -48,7 +52,8 @@ window.onload = () => {
     // 3. OBTER PROGRAMA ATUAL
     // ============================
     function getCurrentProgram(epgId) {
-        if (!epg[epgId]) return "Sem informação disponível";
+        if (!epgId) return "Sem EPG para este canal";
+        if (!epg[epgId]) return "Sem programação disponível";
 
         const now = new Date();
 
@@ -76,25 +81,54 @@ window.onload = () => {
         "RTP Madeira": "RTPMadeira.pt",
         "RTP África": "RTPAfrica.pt",
         "RTP Internacional": "RTPInternacional.pt",
+
         "SIC": "SIC.pt",
         "SIC Notícias": "SICNoticias.pt",
         "SIC Radical": "SICRadical.pt",
         "SIC Mulher": "SICMulher.pt",
         "SIC K": "SICK.pt",
+
         "TVI": "TVI.pt",
         "TVI Ficção": "TVIFiccao.pt",
         "TVI Reality": "TVIReality.pt",
         "TVI Internacional": "TVIInternacional.pt",
+
         "CMTV": "CMTV.pt",
         "CNN Portugal": "CNNPortugal.pt",
-        "Porto Canal": "PortoCanal.pt",
-        "Canal 11": "Canal11.pt",
-        "RecordTV Europa": "RecordTVEuropa.pt",
-        "Euronews PT": "EuronewsPortuguese.fr",
-        "Kuriakos TV": "KuriakosTV.pt",
-        "Kuriakos Kids": "KuriakosKids.pt",
-        "Kuriakos Cine": "KuriakosCine.pt",
-        "Kuriakos Music": "KuriakosMusic.pt"
+
+        "Canal História": "Historia.pt",
+        "Odisseia": "Odisseia.pt",
+        "National Geographic": "NationalGeographic.pt",
+        "Discovery Channel": "DiscoveryChannel.pt",
+
+        "AXN": "AXN.pt",
+        "AXN White": "AXNWhite.pt",
+        "AXN Movies": "AXNMovies.pt",
+        "Syfy": "Syfy.pt",
+
+        "24Kitchen": "24Kitchen.pt",
+        "Canal Panda": "CanalPanda.pt",
+        "Biggs": "Biggs.pt",
+        "Nickelodeon": "Nickelodeon.pt",
+        "Disney Channel": "DisneyChannel.pt",
+
+        "Sport TV 1": "SportTV1.pt",
+        "Sport TV 2": "SportTV2.pt",
+        "Sport TV 3": "SportTV3.pt",
+        "Sport TV 4": "SportTV4.pt",
+        "Sport TV 5": "SportTV5.pt",
+        "Sport TV 6": "SportTV6.pt",
+
+        "BTV": "BenficaTV.pt",
+        "Eurosport": "Eurosport1.fr",
+        "Eurosport 2": "Eurosport2.fr",
+
+        "Fuel TV": "FUELTV.at",
+        "MTV Portugal": "MTV.pt",
+        "Trace Urban": "TraceUrban.fr",
+        "TV5 Monde": "TV5MondeEurope.fr",
+        "ARTE": "arte.fr",
+        "Rai News": "RaiNews24.it"
     };
 
     // ============================
