@@ -1,194 +1,137 @@
-window.onload = () => {
-    const list = document.getElementById("channel-list");
-    const container = document.getElementById("player-area");
+/* ============================================================
+   VIBE.PT — PLAYER IPTV AUTOMÁTICO
+   M3U dinâmica + EPG XMLTV GZIP + Grupos automáticos
+   Dropdown fixo à direita com ícones coloridos
+   ============================================================ */
 
-    let currentHLS = null;
-    let epg = {};
+const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
+const EPG_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/EPG/epg-m3upt.xml.gz";
 
-    // ============================
-    // 1. CARREGAR EPG DO M3UPT
-    // ============================
-    fetch("https://m3upt.com/epg")
-        .then(r => r.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(xmlText, "text/xml");
-            epg = parseEPG(xml);
-            console.log("EPG carregado:", epg);
-        })
-        .catch(() => console.log("Falha ao carregar EPG"));
+let channels = [];
+let groups = {};
+let epgData = {};
+let currentGroup = null;
 
-    // ============================
-    // 2. PARSE XMLTV → JSON
-    // ============================
-    function parseEPG(xml) {
-        const programs = {};
-        const items = xml.getElementsByTagName("programme");
+/* ============================================================
+   1) CARREGAR M3U
+   ============================================================ */
 
-        const today = new Date();
-        const todayStr = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+async function loadM3U() {
+    const res = await fetch(M3U_URL);
+    const text = await res.text();
+    parseM3U(text);
+}
 
-        for (let p of items) {
-            const channel = p.getAttribute("channel");
-            const start = p.getAttribute("start"); // ex: 20260130060000 +0000
-            const stop = p.getAttribute("stop");
+function parseM3U(text) {
+    const lines = text.split("\n");
+    let temp = {};
 
-            const startDate = start.substring(0, 8); // YYYYMMDD
+    for (let line of lines) {
+        line = line.trim();
 
-            // Filtrar só o dia de hoje
-            if (startDate !== todayStr) continue;
+        if (line.startsWith("#EXTINF")) {
+            const name = line.match(/,(.*)$/)?.[1] || "Sem nome";
+            const logo = line.match(/tvg-logo="(.*?)"/)?.[1] || "";
+            const group = line.match(/group-title="(.*?)"/)?.[1] || "Outros";
 
-            const titleNode = p.getElementsByTagName("title")[0];
-            const title = titleNode ? titleNode.textContent : "Sem título";
-
-            if (!programs[channel]) programs[channel] = [];
-            programs[channel].push({ start, stop, title });
+            temp = { name, logo, group };
         }
 
-        return programs;
-    }
+        else if (line.startsWith("http")) {
+            temp.url = line;
 
-    // ============================
-    // 3. OBTER PROGRAMA ATUAL
-    // ============================
-    function getCurrentProgram(epgId) {
-        if (!epgId) return "Sem EPG para este canal";
-        if (!epg[epgId]) return "Sem programação disponível";
+            if (!groups[temp.group]) groups[temp.group] = [];
+            groups[temp.group].push(temp);
 
-        const now = new Date();
-
-        for (const prog of epg[epgId]) {
-            const start = new Date(prog.start.replace(" +0000", "Z"));
-            const stop = new Date(prog.stop.replace(" +0000", "Z"));
-
-            if (now >= start && now <= stop) {
-                return prog.title;
-            }
+            channels.push(temp);
+            temp = {};
         }
-
-        return "Sem programação neste momento";
     }
+}
 
-    // ============================
-    // 4. MAPA XMLTV → NOMES DO TEU SITE
-    // ============================
-    const epgMap = {
-        "RTP 1": "RTP1.pt",
-        "RTP 2": "RTP2.pt",
-        "RTP 3": "RTP3.pt",
-        "RTP Memória": "RTPMemoria.pt",
-        "RTP Açores": "RTPAcores.pt",
-        "RTP Madeira": "RTPMadeira.pt",
-        "RTP África": "RTPAfrica.pt",
-        "RTP Internacional": "RTPInternacional.pt",
+/* ============================================================
+   2) CARREGAR EPG (XMLTV GZIP)
+   ============================================================ */
 
-        "SIC": "SIC.pt",
-        "SIC Notícias": "SICNoticias.pt",
-        "SIC Radical": "SICRadical.pt",
-        "SIC Mulher": "SICMulher.pt",
-        "SIC K": "SICK.pt",
+async function loadEPG() {
+    const res = await fetch(EPG_URL);
+    const ds = new DecompressionStream("gzip");
+    const decompressed = res.body.pipeThrough(ds);
+    const text = await new Response(decompressed).text();
 
-        "TVI": "TVI.pt",
-        "TVI Ficção": "TVIFiccao.pt",
-        "TVI Reality": "TVIReality.pt",
-        "TVI Internacional": "TVIInternacional.pt",
+    parseEPG(text);
+}
 
-        "CMTV": "CMTV.pt",
-        "CNN Portugal": "CNNPortugal.pt",
+function parseEPG(xmlText) {
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(xmlText, "text/xml");
 
-        "Canal História": "Historia.pt",
-        "Odisseia": "Odisseia.pt",
-        "National Geographic": "NationalGeographic.pt",
-        "Discovery Channel": "DiscoveryChannel.pt",
+    const programmes = xml.getElementsByTagName("programme");
 
-        "AXN": "AXN.pt",
-        "AXN White": "AXNWhite.pt",
-        "AXN Movies": "AXNMovies.pt",
-        "Syfy": "Syfy.pt",
+    for (let p of programmes) {
+        const channel = p.getAttribute("channel");
+        const start = p.getAttribute("start");
+        const stop = p.getAttribute("stop");
+        const title = p.getElementsByTagName("title")[0]?.textContent || "";
+        const desc = p.getElementsByTagName("desc")[0]?.textContent || "";
 
-        "24Kitchen": "24Kitchen.pt",
-        "Canal Panda": "CanalPanda.pt",
-        "Biggs": "Biggs.pt",
-        "Nickelodeon": "Nickelodeon.pt",
-        "Disney Channel": "DisneyChannel.pt",
+        if (!epgData[channel]) epgData[channel] = [];
+        epgData[channel].push({ start, stop, title, desc });
+    }
+}
 
-        "Sport TV 1": "SportTV1.pt",
-        "Sport TV 2": "SportTV2.pt",
-        "Sport TV 3": "SportTV3.pt",
-        "Sport TV 4": "SportTV4.pt",
-        "Sport TV 5": "SportTV5.pt",
-        "Sport TV 6": "SportTV6.pt",
+/* ============================================================
+   3) DROPDOWN DE GRUPOS (COM ÍCONES COLORIDOS)
+   ============================================================ */
 
-        "BTV": "BenficaTV.pt",
-        "Eurosport": "Eurosport1.fr",
-        "Eurosport 2": "Eurosport2.fr",
+const groupIcons = {
+    "Generalistas": "📺",
+    "Notícias": "📰",
+    "Desporto": "⚽",
+    "Filmes & Séries": "🎬",
+    "Música": "🎵",
+    "Infantis": "👶",
+    "Cultura": "📚",
+    "Internacionais": "🌍",
+    "Adultos": "🔞",
+    "Rádios": "📻",
+    "4K": "🖥️",
+    "Outros": "📦"
+};
 
-        "Fuel TV": "FUELTV.at",
-        "MTV Portugal": "MTV.pt",
-        "Trace Urban": "TraceUrban.fr",
-        "TV5 Monde": "TV5MondeEurope.fr",
-        "ARTE": "arte.fr",
-        "Rai News": "RaiNews24.it"
+function buildGroupDropdown() {
+    const dropdown = document.getElementById("groupDropdown");
+
+    dropdown.innerHTML = "";
+
+    Object.keys(groups).forEach(group => {
+        if (groups[group].length === 0) return;
+
+        const option = document.createElement("option");
+        option.value = group;
+        option.textContent = `${groupIcons[group] || "📦"} ${group}`;
+        dropdown.appendChild(option);
+    });
+
+    dropdown.onchange = () => {
+        currentGroup = dropdown.value;
+        buildChannelList();
     };
 
-    // ============================
-    // 5. PLAYER HLS
-    // ============================
-    function loadHLS(url, div, name) {
-        unloadYouTube();
+    currentGroup = dropdown.value;
+}
 
-        const video = document.getElementById("tv-player");
+/* ============================================================
+   4) LISTA DE CANAIS
+   ============================================================ */
 
-        document.querySelectorAll(".channel").forEach(c => c.classList.remove("active"));
-        div.classList.add("active");
+function buildChannelList() {
+    const list = document.getElementById("channel-list");
+    list.innerHTML = "";
 
-        const epgId = epgMap[name];
-        document.getElementById("epg-now").innerText = epgId ? getCurrentProgram(epgId) : "Sem EPG";
+    const groupChannels = groups[currentGroup] || [];
 
-        if (currentHLS) {
-            currentHLS.destroy();
-            currentHLS = null;
-        }
-
-        if (Hls.isSupported()) {
-            currentHLS = new Hls();
-            currentHLS.loadSource(url);
-            currentHLS.attachMedia(video);
-            video.play().catch(() => {});
-        } else {
-            video.src = url;
-            video.play().catch(() => {});
-        }
-    }
-
-    // ============================
-    // 6. PLAYER YOUTUBE
-    // ============================
-    function loadYouTube(embedUrl, div, name) {
-        document.querySelectorAll(".channel").forEach(c => c.classList.remove("active"));
-        div.classList.add("active");
-
-        const epgId = epgMap[name];
-        document.getElementById("epg-now").innerText = epgId ? getCurrentProgram(epgId) : "Sem EPG";
-
-        container.innerHTML = `
-            <iframe id="yt-frame"
-                src="${embedUrl}"
-                frameborder="0"
-                allow="autoplay; encrypted-media"
-                allowfullscreen>
-            </iframe>
-        `;
-    }
-
-    function unloadYouTube() {
-        container.innerHTML = `<video id="tv-player" controls autoplay></video>`;
-    }
-
-    // ============================
-    // 7. LISTA DE CANAIS
-    // ============================
-    channels.forEach(ch => {
+    groupChannels.forEach(ch => {
         const div = document.createElement("div");
         div.className = "channel";
 
@@ -197,28 +140,81 @@ window.onload = () => {
             <div class="channel-name">${ch.name}</div>
         `;
 
-        div.onclick = () => {
-            if (ch.type === "youtube") {
-                loadYouTube(ch.url, div, ch.name);
-            } else {
-                loadHLS(ch.url, div, ch.name);
-            }
-        };
+        div.onclick = () => loadChannel(ch);
 
         list.appendChild(div);
     });
+}
 
-    // ============================
-    // 8. CARREGAR PRIMEIRO CANAL
-    // ============================
-    if (channels.length > 0) {
-        const first = channels[0];
-        const firstDiv = document.querySelector(".channel");
+/* ============================================================
+   5) CARREGAR CANAL (HLS)
+   ============================================================ */
 
-        if (first.type === "youtube") {
-            loadYouTube(first.url, firstDiv, first.name);
-        } else {
-            loadHLS(first.url, firstDiv, first.name);
-        }
+function loadChannel(ch) {
+    const video = document.getElementById("videoPlayer");
+
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+    } else {
+        video.src = ch.url;
     }
-};
+
+    loadEPGForChannel(ch);
+}
+
+/* ============================================================
+   6) EPG DO CANAL ATUAL
+   ============================================================ */
+
+function loadEPGForChannel(ch) {
+    const epgBox = document.getElementById("epg");
+
+    const channelEPG = epgData[ch.name] || epgData[ch.tvgid] || [];
+
+    if (channelEPG.length === 0) {
+        epgBox.innerHTML = "Sem EPG disponível";
+        return;
+    }
+
+    const now = Date.now();
+
+    const current = channelEPG.find(p => {
+        const start = parseEPGDate(p.start);
+        const stop = parseEPGDate(p.stop);
+        return now >= start && now <= stop;
+    });
+
+    if (!current) {
+        epgBox.innerHTML = "Sem programa atual";
+        return;
+    }
+
+    epgBox.innerHTML = `
+        <strong>${current.title}</strong><br>
+        ${current.desc}
+    `;
+}
+
+function parseEPGDate(str) {
+    const y = str.substring(0, 4);
+    const m = str.substring(4, 6);
+    const d = str.substring(6, 8);
+    const hh = str.substring(8, 10);
+    const mm = str.substring(10, 12);
+    const ss = str.substring(12, 14);
+
+    return new Date(`${y}-${m}-${d}T${hh}:${mm}:${ss}`).getTime();
+}
+
+/* ============================================================
+   7) INICIAR TUDO
+   ============================================================ */
+
+(async () => {
+    await loadM3U();
+    await loadEPG();
+    buildGroupDropdown();
+    buildChannelList();
+})();
