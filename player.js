@@ -2,9 +2,31 @@ window.onload = () => {
     const list = document.getElementById("channel-list");
     const container = document.getElementById("player-area");
 
-    let currentHLS = null; // para destruir instâncias antigas
+    let currentHLS = null; // instância ativa do HLS.js
 
-    // Função para carregar streams HLS (.m3u8)
+    // ============================
+    // FUNÇÃO: Obter programa atual do EPG
+    // ============================
+    function getCurrentProgram(channelName) {
+        if (!epg[channelName]) return "Sem informação disponível";
+
+        const now = new Date();
+
+        for (const prog of epg[channelName]) {
+            const start = new Date(prog.start.replace(" +0000", "Z"));
+            const stop = new Date(prog.stop.replace(" +0000", "Z"));
+
+            if (now >= start && now <= stop) {
+                return prog.title;
+            }
+        }
+
+        return "Sem programação neste momento";
+    }
+
+    // ============================
+    // FUNÇÃO: Carregar stream HLS (.m3u8)
+    // ============================
     function loadHLS(url, div) {
         unloadYouTube(); // garantir que não há iframe ativo
 
@@ -13,6 +35,10 @@ window.onload = () => {
         // Remover destaque anterior
         document.querySelectorAll(".channel").forEach(c => c.classList.remove("active"));
         if (div) div.classList.add("active");
+
+        // Atualizar EPG
+        document.getElementById("epg-now").innerText =
+            getCurrentProgram(div.dataset.name);
 
         // Destruir instância anterior
         if (currentHLS) {
@@ -38,11 +64,17 @@ window.onload = () => {
         }
     }
 
-    // Função para carregar YouTube
+    // ============================
+    // FUNÇÃO: Carregar YouTube
+    // ============================
     function loadYouTube(embedUrl, div) {
         // Remover destaque anterior
         document.querySelectorAll(".channel").forEach(c => c.classList.remove("active"));
         if (div) div.classList.add("active");
+
+        // Atualizar EPG
+        document.getElementById("epg-now").innerText =
+            getCurrentProgram(div.dataset.name);
 
         container.innerHTML = `
             <iframe id="yt-frame"
@@ -54,12 +86,16 @@ window.onload = () => {
         `;
     }
 
-    // Voltar ao player normal
+    // ============================
+    // FUNÇÃO: Voltar ao player normal
+    // ============================
     function unloadYouTube() {
         container.innerHTML = `<video id="tv-player" controls autoplay></video>`;
     }
 
-    // Criar lista de canais
+    // ============================
+    // CRIAR LISTA DE CANAIS
+    // ============================
     channels.forEach(ch => {
         const div = document.createElement("div");
         div.className = "channel";
@@ -81,7 +117,9 @@ window.onload = () => {
         list.appendChild(div);
     });
 
-    // Carregar automaticamente o primeiro canal
+    // ============================
+    // CARREGAR AUTOMATICAMENTE O PRIMEIRO CANAL
+    // ============================
     if (channels.length > 0) {
         const first = channels[0];
         const firstDiv = document.querySelector(".channel");

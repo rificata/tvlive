@@ -1,28 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TV Player</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-</head>
-<body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe TV Player</title>
 
-<div id="container">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- HLS.js para streams .m3u8 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- EPG Loader -->
+    <script>
+        let epg = {};
+
+        fetch("https://raw.githubusercontent.com/LITUATUI/M3UPT/main/epg/epg.json")
+            .then(r => r.json())
+            .then(data => epg = data)
+            .catch(() => console.log("Falha ao carregar EPG"));
+    </script>
+</head>
+
+<body>
 
     <!-- PLAYER -->
     <div id="player-area">
         <video id="tv-player" controls autoplay></video>
     </div>
 
+    <!-- EPG -->
+    <div id="epg-box">
+        <div id="epg-title">Programa atual</div>
+        <div id="epg-now">A carregar…</div>
+    </div>
+
     <!-- LISTA DE CANAIS -->
     <div id="channel-list"></div>
 
-</div>
-
-<script src="channels.js"></script>
-<script src="player.js"></script>
+    <!-- Scripts -->
+    <script src="channels.js"></script>
+    <script src="player.js"></script>
 
 </body>
 </html>

@@ -5,13 +5,16 @@
 body {
     margin: 0;
     padding: 0;
-    background: #0f0f0f;
+    background: #0d0d0d;
     color: #fff;
     font-family: Arial, Helvetica, sans-serif;
     overflow: hidden;
 }
 
-/* Área do player */
+/* ============================
+   PLAYER
+============================ */
+
 #player-area {
     width: 100%;
     height: 55vh;
@@ -31,6 +34,28 @@ body {
 }
 
 /* ============================
+   EPG
+============================ */
+
+#epg-box {
+    background: #111;
+    padding: 12px 15px;
+    border-top: 1px solid #333;
+    font-size: 14px;
+}
+
+#epg-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+#epg-now {
+    color: #ccc;
+    font-size: 13px;
+}
+
+/* ============================
    LISTA DE CANAIS
 ============================ */
 
@@ -43,7 +68,7 @@ body {
     gap: 15px;
 }
 
-/* Barra de scroll mais discreta */
+/* Scrollbar discreto */
 #channel-list::-webkit-scrollbar {
     width: 8px;
 }
@@ -84,7 +109,7 @@ body {
     background: #0044cc;
     border-color: #77aaff;
     transform: scale(1.08);
-    box-shadow: 0 0 10px #0055ff;
+    box-shadow: 0 0 12px #0055ff;
 }
 
 /* ============================
@@ -92,7 +117,7 @@ body {
 ============================ */
 
 .channel img {
-    width: 140px; /* L1 */
+    width: 140px;
     height: auto;
     object-fit: contain;
     margin-bottom: 6px;
