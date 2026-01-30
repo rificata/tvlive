@@ -3,49 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Player</title>
+
+    <title>Vibe TV</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+    <!-- Manifest PWA -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Tema da app (barra do Android) -->
+    <meta name="theme-color" content="#000000">
+
+    <!-- iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
 
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- HLS.js para streams .m3u8 -->
+    <!-- HLS.js -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-    <!-- EPG Loader -->
-<script>
-    let epg = {};
-
-    fetch("https://m3upt.com/epg")
-        .then(r => r.text())
-        .then(xmlText => {
-            const parser = new DOMParser();
-            const xml = parser.parseFromString(xmlText, "text/xml");
-            epg = parseEPG(xml);
-        })
-        .catch(() => console.log("Falha ao carregar EPG"));
-</script>
-
 </head>
 
 <body>
 
-    <!-- PLAYER -->
-    <div id="player-area">
-        <video id="tv-player" controls autoplay></video>
+    <!-- BARRA FIXA COM DROPDOWN -->
+    <div id="groupBar">
+        <span id="groupBar-label">Grupo:</span>
+        <select id="groupDropdown"></select>
     </div>
 
-    <!-- EPG -->
-    <div id="epg-box">
-        <div id="epg-title">Programa atual</div>
-        <div id="epg-now">A carregar…</div>
+    <!-- LAYOUT PRINCIPAL -->
+    <div id="app">
+
+        <!-- LISTA DE CANAIS -->
+        <div id="channel-list-container">
+            <div id="channel-list"></div>
+        </div>
+
+        <!-- PLAYER -->
+        <div id="player-container">
+            <div id="video-wrapper">
+                <video id="videoPlayer" controls autoplay></video>
+            </div>
+
+            <!-- EPG -->
+            <div id="epg">A carregar EPG…</div>
+        </div>
+
     </div>
 
-    <!-- LISTA DE CANAIS -->
-    <div id="channel-list"></div>
-
-    <!-- Scripts -->
-    <script src="channels.js"></script>
+    <!-- PLAYER.JS -->
     <script src="player.js"></script>
+
+    <!-- SERVICE WORKER -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js");
+        }
+    </script>
 
 </body>
 </html>
