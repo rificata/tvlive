@@ -2,6 +2,7 @@
    TVPLAYER — PLAYER IPTV AUTOMÁTICO
    M3U dinâmica + EPG XMLTV GZIP + Grupos automáticos
    Dropdown fixo à direita com ícones coloridos
+   Timeline EPG + próximos programas + rádios
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -36,9 +37,7 @@ function parseM3U(text) {
             const tvgid = line.match(/tvg-id="(.*?)"/)?.[1] || "";
 
             temp = { name, logo, group, tvgid };
-        }
-
-        else if (line.startsWith("http")) {
+        } else if (line.startsWith("http")) {
             temp.url = line;
 
             if (!groups[temp.group]) groups[temp.group] = [];
@@ -192,15 +191,20 @@ function loadChannel(ch) {
 }
 
 /* ============================================================
-   6) EPG DO CANAL ATUAL (CORRIGIDO)
+   6) EPG DO CANAL ATUAL + TIMELINE + PRÓXIMOS
    ============================================================ */
 
 function loadEPGForChannel(ch) {
     const epgBox = document.getElementById("epg");
+    const timeline = document.getElementById("epgTimeline");
+    const nextBox = document.getElementById("epgNext");
+
+    if (timeline) timeline.innerHTML = "";
+    if (nextBox) nextBox.innerHTML = "";
 
     let channelEPG = [];
 
-    // 1) Tenta pelo tvg-id (correto)
+    // 1) Tenta pelo tvg-id
     if (ch.tvgid && epgData[ch.tvgid]) {
         channelEPG = epgData[ch.tvgid];
     }
@@ -220,6 +224,7 @@ function loadEPGForChannel(ch) {
 
     const now = Date.now();
 
+    // Programa atual
     const current = channelEPG.find(p => {
         const start = parseEPGDate(p.start);
         const stop = parseEPGDate(p.stop);
@@ -231,11 +236,76 @@ function loadEPGForChannel(ch) {
         return;
     }
 
+    const start = parseEPGDate(current.start);
+    const stop = parseEPGDate(current.stop);
+    const progress = ((now - start) / (stop - start)) * 100;
+
     epgBox.innerHTML = `
         <strong>${current.title}</strong><br>
-        ${current.desc}
+        ${current.desc}<br>
+        <div class="epg-progress">
+            <div class="epg-progress-bar" style="width:${Math.max(0, Math.min(100, progress))}%"></div>
+        </div>
     `;
+
+    /* ===========================
+       TIMELINE HORIZONTAL
+       =========================== */
+
+    if (timeline) {
+        channelEPG.forEach(p => {
+            const s = parseEPGDate(p.start);
+            const e = parseEPGDate(p.stop);
+
+            const block = document.createElement("div");
+            block.className = "epg-block";
+
+            block.innerHTML = `
+                <div class="epg-block-title">${p.title}</div>
+                <div>${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                 - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+            `;
+
+            if (now >= s && now <= e) {
+                const pct = ((now - s) / (e - s)) * 100;
+                block.innerHTML += `
+                    <div class="epg-progress">
+                        <div class="epg-progress-bar" style="width:${Math.max(0, Math.min(100, pct))}%"></div>
+                    </div>
+                `;
+            }
+
+            timeline.appendChild(block);
+        });
+    }
+
+    /* ===========================
+       PRÓXIMOS PROGRAMAS
+       =========================== */
+
+    if (nextBox) {
+        const next = channelEPG
+            .filter(p => parseEPGDate(p.start) > now)
+            .slice(0, 5);
+
+        next.forEach(p => {
+            const s = parseEPGDate(p.start);
+            const e = parseEPGDate(p.stop);
+
+            const div = document.createElement("div");
+            div.innerHTML = `
+                <strong>${p.title}</strong><br>
+                ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+            `;
+            nextBox.appendChild(div);
+        });
+    }
 }
+
+/* ============================================================
+   7) PARSE DE DATA DO EPG
+   ============================================================ */
 
 function parseEPGDate(str) {
     const y = str.substring(0, 4);
@@ -249,7 +319,7 @@ function parseEPGDate(str) {
 }
 
 /* ============================================================
-   7) INICIAR TUDO
+   8) INICIAR TUDO
    ============================================================ */
 
 (async () => {
