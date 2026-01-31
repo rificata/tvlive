@@ -149,7 +149,7 @@ function buildChannelList() {
 }
 
 /* ============================================================
-   5) CARREGAR CANAL (HLS + RÁDIOS)
+   5) CARREGAR CANAL (HLS + RÁDIOS COM OVERLAY)
    ============================================================ */
 
 function loadChannel(ch) {
@@ -163,9 +163,23 @@ function loadChannel(ch) {
                     ch.url.endsWith(".aac") ||
                     ch.url.endsWith(".ogg");
 
+    // limpar estado anterior
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+
     if (isRadio) {
-        video.style.display = "none";
+        // Rádio: overlay visível, vídeo invisível mas ativo
         radioOverlay.style.display = "flex";
+        video.style.opacity = "0";
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(ch.url);
+            hls.attachMedia(video);
+        } else {
+            video.src = ch.url;
+        }
 
         if (ch.logo && ch.logo.trim() !== "") {
             radioLogo.src = ch.logo;
@@ -175,8 +189,9 @@ function loadChannel(ch) {
             radioLogo.classList.add("no-logo");
         }
     } else {
+        // TV: overlay escondido, vídeo visível
         radioOverlay.style.display = "none";
-        video.style.display = "block";
+        video.style.opacity = "1";
 
         if (Hls.isSupported()) {
             const hls = new Hls();
