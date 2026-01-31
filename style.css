@@ -2,121 +2,156 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #000; color: #fff; font-family: Arial, sans-serif; }
 
-/* LAYOUT */
-#app { display: flex; height: 100vh; overflow: hidden; }
-
 /* BARRA FIXA */
-#groupBar {
-    position: fixed; top: 0; left: 0; width: 100%;
-    padding: 10px 16px;
-    background: rgba(0,0,0,0.65);
+#topBar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(0,0,0,0.75);
     backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
     z-index: 9999;
-    display: flex; gap: 8px; align-items: center;
 }
 
-#groupDropdown {
-    padding: 6px 10px; border-radius: 6px;
-    background: #111; color: #fff; border: 1px solid #444;
+#categorySelect {
+    background: #111;
+    color: #fff;
+    border: 1px solid #444;
+    padding: 6px 10px;
+    border-radius: 6px;
 }
 
-/* SIDEBAR */
-#channel-list-container {
-    width: 260px;
-    flex-shrink: 0;
-    background: #050505;
-    border-right: 1px solid #222;
-    padding-top: 60px;
-    overflow-y: auto;
-    z-index: 10;
+#channelScroller {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex: 1;
 }
 
-.channel {
-    display: flex; gap: 8px; align-items: center;
-    padding: 6px 8px; border-radius: 6px;
+.channelItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
+    opacity: 0.8;
 }
-.channel:hover { background: #181818; }
-.channel img { width: 42px; height: 42px; object-fit: contain; }
+
+.channelItem:hover { opacity: 1; }
+
+.channelItem img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.separator {
+    opacity: 0.4;
+}
 
 /* PLAYER */
-#player-container {
-    flex: 1; display: flex; flex-direction: column;
-    padding-top: 60px;
-    background: #000;
+#playerArea {
+    margin-top: 60px;
+    position: relative;
+    padding: 20px;
 }
 
-#video-wrapper {
-    position: relative;
-    flex: 1;
-    display: flex; align-items: center; justify-content: center;
-    background: #000;
+#playerHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+#playerLogo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+#playerName {
+    font-size: 22px;
+    font-weight: bold;
 }
 
 #videoPlayer {
-    width: 100%; max-height: 70vh;
-    border-radius: 8px; border: 1px solid #333;
+    width: 100%;
+    max-height: 60vh;
+    border-radius: 8px;
+    border: 1px solid #333;
 }
 
-/* LOGO NO CANTO */
-#channelLogoOverlay {
-    position: absolute; top: 12px; right: 12px;
-    width: 90px; height: 90px;
-    object-fit: contain;
-    background: rgba(0,0,0,0.35);
-    padding: 6px; border-radius: 8px;
-    backdrop-filter: blur(4px);
-    z-index: 20;
-}
-
-/* INFO DO CANAL */
-#channelInfoOverlay {
-    position: absolute; top: 12px; left: 12px;
-    padding: 6px 10px;
-    background: rgba(0,0,0,0.45);
+/* BOTÕES DE NAVEGAÇÃO */
+.navBtn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    padding: 6px 12px;
     border-radius: 6px;
-    font-size: 14px;
-    z-index: 20;
+    cursor: pointer;
 }
+
+#prevBtn { left: 30px; }
+#nextBtn { right: 30px; }
 
 /* PROGRESSO */
-#progressOverlay {
-    position: absolute; bottom: 0; left: 0; width: 100%;
-    height: 4px; background: rgba(255,255,255,0.2);
+#playerProgress {
+    width: 100%;
+    height: 4px;
+    background: #222;
+    margin-top: 6px;
 }
-#progressBar {
-    height: 100%; width: 0%;
+
+#playerProgressBar {
+    height: 100%;
+    width: 0%;
     background: #00c853;
 }
 
-/* MINI‑EPG FORA DO VÍDEO */
-#miniEPG {
-    width: 100%;
+/* EPG SIMPLES */
+#epgSimple {
+    padding: 20px;
+}
+
+#epgSimple h2 {
+    margin-bottom: 6px;
+}
+
+/* BOTÃO PROGRAMAÇÃO */
+#epgToggleBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #111;
+    border: 1px solid #444;
     padding: 10px 16px;
-    background: #0a0a0a;
-    border-top: 1px solid #222;
-    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
-/* TIMELINE */
-#epgTimelineContainer {
-    width: 100%; overflow-x: auto;
-    background: #0a0a0a; border-top: 1px solid #222;
-    padding: 10px 0;
-}
-#epgTimeline {
-    display: flex; gap: 20px; padding: 0 20px;
+/* OVERLAY PROGRAMAÇÃO COMPLETA */
+#epgOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(6px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
 }
 
-/* ZAPPING BUTTONS */
-.zapBtn {
-    position: absolute; top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0,0,0,0.45);
-    border: none; color: #fff;
-    font-size: 32px; padding: 6px 12px;
-    border-radius: 6px; cursor: pointer;
-    z-index: 30;
+#epgOverlayContent {
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
 }
-#btnPrev { left: 12px; }
-#btnNext { right: 12px; }

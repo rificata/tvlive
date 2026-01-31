@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>tvplayer</title>
 
     <link rel="stylesheet" href="style.css">
@@ -12,49 +11,43 @@
 
 <body>
 
-    <!-- BARRA FIXA -->
-    <div id="groupBar">
-        <span id="groupBar-label">Grupo:</span>
-        <select id="groupDropdown"></select>
+    <!-- BARRA FIXA COMPACTA -->
+    <div id="topBar">
+        <select id="categorySelect"></select>
+
+        <div id="channelScroller"></div>
     </div>
 
-    <div id="app">
+    <!-- PLAYER -->
+    <div id="playerArea">
 
-        <!-- LISTA DE CANAIS -->
-        <div id="channel-list-container">
-            <div id="channel-list"></div>
+        <div id="playerHeader">
+            <img id="playerLogo">
+            <span id="playerName"></span>
         </div>
 
-        <!-- PLAYER -->
-        <div id="player-container">
+        <button id="prevBtn" class="navBtn">⟨</button>
+        <button id="nextBtn" class="navBtn">⟩</button>
 
-            <div id="video-wrapper">
-                <img id="channelLogoOverlay" alt="Logo do canal">
-                <div id="channelInfoOverlay"></div>
-                <div id="progressOverlay"><div id="progressBar"></div></div>
+        <video id="videoPlayer" controls autoplay></video>
 
-                <button id="btnPrev" class="zapBtn">⟨</button>
-                <button id="btnNext" class="zapBtn">⟩</button>
-
-                <video id="videoPlayer" controls autoplay></video>
-            </div>
-
-            <!-- MINI‑EPG FORA DO VÍDEO -->
-            <div id="miniEPG"></div>
-
-            <!-- TIMELINE COMPLETA -->
-            <div id="epgTimelineContainer">
-                <div id="epgTimeline"></div>
-            </div>
-
-            <!-- PRÓXIMOS PROGRAMAS -->
-            <div id="epgNextContainer">
-                <h3>Próximos programas</h3>
-                <div id="epgNext"></div>
-            </div>
-
+        <div id="playerProgress">
+            <div id="playerProgressBar"></div>
         </div>
+    </div>
 
+    <!-- EPG SIMPLES -->
+    <div id="epgSimple">
+        <h2 id="epgTitle"></h2>
+        <p id="epgDesc"></p>
+    </div>
+
+    <!-- BOTÃO PARA PROGRAMAÇÃO COMPLETA -->
+    <button id="epgToggleBtn">Programação</button>
+
+    <!-- OVERLAY DA PROGRAMAÇÃO COMPLETA -->
+    <div id="epgOverlay">
+        <div id="epgOverlayContent"></div>
     </div>
 
     <script src="player.js"></script>
