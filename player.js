@@ -1,5 +1,5 @@
 /* ============================================================
-   VIBE.PT — PLAYER IPTV AUTOMÁTICO
+   TVPLAYER — PLAYER IPTV AUTOMÁTICO
    M3U dinâmica + EPG XMLTV GZIP + Grupos automáticos
    Dropdown fixo à direita com ícones coloridos
    ============================================================ */
@@ -152,13 +152,38 @@ function buildChannelList() {
 
 function loadChannel(ch) {
     const video = document.getElementById("videoPlayer");
+    const radioOverlay = document.getElementById("radioOverlay");
+    const radioLogo = document.getElementById("radioLogo");
 
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(ch.url);
-        hls.attachMedia(video);
+    const isRadio = ch.group.toLowerCase().includes("rádio") ||
+                    ch.group.toLowerCase().includes("radio") ||
+                    ch.url.endsWith(".mp3") ||
+                    ch.url.endsWith(".aac") ||
+                    ch.url.endsWith(".ogg");
+
+    if (isRadio) {
+        // Mostrar overlay e esconder vídeo
+        video.style.display = "none";
+        radioOverlay.style.display = "flex";
+
+        if (ch.logo && ch.logo.trim() !== "") {
+            radioLogo.src = ch.logo;
+        } else {
+            radioLogo.src = ""; // sem logo → ícone padrão via CSS
+            radioLogo.classList.add("no-logo");
+        }
     } else {
-        video.src = ch.url;
+        // Mostrar vídeo normal
+        radioOverlay.style.display = "none";
+        video.style.display = "block";
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(ch.url);
+            hls.attachMedia(video);
+        } else {
+            video.src = ch.url;
+        }
     }
 
     loadEPGForChannel(ch);

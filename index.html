@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>TV Player</title>
+    <title>tvplayer</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="icons/icon-192.png">
@@ -12,7 +12,7 @@
     <!-- Manifest PWA -->
     <link rel="manifest" href="manifest.json">
 
-    <!-- Tema da app (barra do Android) -->
+    <!-- Tema da app (Android) -->
     <meta name="theme-color" content="#000000">
 
     <!-- iOS PWA -->
@@ -43,9 +43,15 @@
             <div id="channel-list"></div>
         </div>
 
-        <!-- PLAYER -->
+        <!-- PLAYER + EPG -->
         <div id="player-container">
             <div id="video-wrapper">
+                <!-- OVERLAY PARA RÁDIOS -->
+                <div id="radioOverlay">
+                    <img id="radioLogo" alt="Rádio">
+                </div>
+
+                <!-- VÍDEO -->
                 <video id="videoPlayer" controls autoplay></video>
             </div>
 
