@@ -1,5 +1,5 @@
 /* ============================================================
-   PLAYER IPTV — BASE LIMPA E MODULAR
+   PLAYER IPTV — COMPLETO
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -10,6 +10,18 @@ let groups = {};
 let epgData = {};
 let currentGroup = null;
 let currentIndex = 0;
+
+/* ÍCONES DAS CATEGORIAS */
+const categoryIcons = {
+    "Canais Nacionais": "https://cdn-icons-png.flaticon.com/512/2989/2989849.png",
+    "Desporto": "https://cdn-icons-png.flaticon.com/512/833/833314.png",
+    "Filmes": "https://cdn-icons-png.flaticon.com/512/3107/3107197.png",
+    "Séries": "https://cdn-icons-png.flaticon.com/512/4072/4072985.png",
+    "Infantil": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png",
+    "Música": "https://cdn-icons-png.flaticon.com/512/727/727245.png",
+    "Notícias": "https://cdn-icons-png.flaticon.com/512/2965/2965879.png",
+    "Outros": "https://cdn-icons-png.flaticon.com/512/565/565654.png"
+};
 
 /* ============================
    CARREGAR M3U
@@ -72,14 +84,15 @@ function parseEPG(xmlText) {
         const stop = p.getAttribute("stop");
         const title = p.getElementsByTagName("title")[0]?.textContent || "";
         const desc = p.getElementsByTagName("desc")[0]?.textContent || "";
+        const icon = p.getElementsByTagName("icon")[0]?.getAttribute("src") || "";
 
         if (!epgData[channel]) epgData[channel] = [];
-        epgData[channel].push({ start, stop, title, desc });
+        epgData[channel].push({ start, stop, title, desc, icon });
     }
 }
 
 /* ============================
-   BARRA FIXA: CATEGORIAS + CANAIS
+   BARRA FIXA
    ============================ */
 
 function buildTopBar() {
@@ -95,17 +108,21 @@ function buildTopBar() {
     select.onchange = () => {
         currentGroup = select.value;
         currentIndex = 0;
+
+        const icon = categoryIcons[currentGroup] || categoryIcons["Outros"];
+        select.style.backgroundImage = `url('${icon}')`;
+
         buildChannelScroller();
-        const ch = groups[currentGroup][currentIndex];
-        loadChannel(ch);
+        loadChannel(groups[currentGroup][0]);
     };
 
     currentGroup = select.value;
-    buildChannelScroller();
 
-    // Carregar primeiro canal do grupo inicial
-    const firstChannel = groups[currentGroup][0];
-    loadChannel(firstChannel);
+    const initialIcon = categoryIcons[currentGroup] || categoryIcons["Outros"];
+    select.style.backgroundImage = `url('${initialIcon}')`;
+
+    buildChannelScroller();
+    loadChannel(groups[currentGroup][0]);
 }
 
 function buildChannelScroller() {
@@ -119,7 +136,7 @@ function buildChannelScroller() {
         div.className = "channelItem";
 
         div.innerHTML = `
-            <img src="${ch.logo}" alt="">
+            <img src="${ch.logo}">
             <span>${ch.name}</span>
         `;
 
@@ -166,7 +183,7 @@ function loadChannel(ch) {
 }
 
 /* ============================
-   EPG: PROGRAMA ATUAL + CARTÕES
+   EPG COMPLETO
    ============================ */
 
 function loadEPGForChannel(ch) {
@@ -185,7 +202,6 @@ function loadEPGForChannel(ch) {
     if (ch.tvgid && epgData[ch.tvgid]) {
         channelEPG = epgData[ch.tvgid];
     } else {
-        // fallback: tentar por nome
         const key = Object.keys(epgData).find(k =>
             k.toLowerCase().includes(ch.name.toLowerCase())
         );
@@ -199,7 +215,6 @@ function loadEPGForChannel(ch) {
 
     const now = Date.now();
 
-    // Programa atual
     const current = channelEPG.find(p => {
         const s = parseEPGDate(p.start);
         const e = parseEPGDate(p.stop);
@@ -219,7 +234,6 @@ function loadEPGForChannel(ch) {
         desc.textContent = "";
     }
 
-    // Programação completa (cartões)
     channelEPG.forEach(p => {
         const s = parseEPGDate(p.start);
         const e = parseEPGDate(p.stop);
@@ -227,16 +241,27 @@ function loadEPGForChannel(ch) {
         const card = document.createElement("div");
         card.className = "epgCard";
 
+        if (current && p.title === current.title) {
+            card.classList.add("current");
+        }
+
+        const thumb = p.icon
+            ? `<img class="epgThumb" src="${p.icon}">`
+            : `<div class="epgThumb"></div>`;
+
         card.innerHTML = `
-            <span class="epgTime">
-                ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-                -
-                ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-            </span>
+            ${thumb}
+            <div class="epgContent">
+                <span class="epgTime">⏱️ 
+                    ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                    -
+                    ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                </span>
 
-            <strong>${p.title}</strong><br>
+                <strong>🎬 ${p.title}</strong><br>
 
-            <span>${p.desc || ""}</span>
+                <span>📝 ${p.desc || ""}</span>
+            </div>
         `;
 
         list.appendChild(card);
@@ -244,7 +269,7 @@ function loadEPGForChannel(ch) {
 }
 
 /* ============================
-   PARSE DATA EPG
+   PARSE DATA
    ============================ */
 
 function parseEPGDate(str) {
@@ -254,7 +279,7 @@ function parseEPGDate(str) {
 }
 
 /* ============================
-   ZAPPING (ANTERIOR / SEGUINTE)
+   ZAPPING
    ============================ */
 
 document.getElementById("prevBtn").onclick = () => zap(-1);
@@ -263,8 +288,7 @@ document.getElementById("nextBtn").onclick = () => zap(1);
 function zap(dir) {
     const groupChannels = groups[currentGroup];
     currentIndex = (currentIndex + dir + groupChannels.length) % groupChannels.length;
-    const ch = groupChannels[currentIndex];
-    loadChannel(ch);
+    loadChannel(groupChannels[currentIndex]);
 }
 
 /* ============================

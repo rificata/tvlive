@@ -27,12 +27,19 @@ body {
     z-index: 9999;
 }
 
+#categorySelectWrapper {
+    position: relative;
+}
+
 #categorySelect {
     background: #111;
     color: #fff;
     border: 1px solid #444;
-    padding: 6px 10px;
+    padding: 6px 10px 6px 34px;
     border-radius: 6px;
+    background-position: 8px center;
+    background-repeat: no-repeat;
+    background-size: 18px;
 }
 
 #channelScroller {
@@ -114,13 +121,8 @@ body {
     z-index: 10;
 }
 
-#prevBtn {
-    left: 30px;
-}
-
-#nextBtn {
-    right: 30px;
-}
+#prevBtn { left: 30px; }
+#nextBtn { right: 30px; }
 
 /* PROGRESSO DO PLAYER */
 #playerProgress {
@@ -141,9 +143,15 @@ body {
     padding: 20px;
 }
 
-#epgSimple h2 {
-    margin-bottom: 6px;
-    font-size: 20px;
+#epgCurrent {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.epgIcon {
+    font-size: 26px;
+    opacity: 0.8;
 }
 
 /* PROGRAMAÇÃO COMPLETA */
@@ -164,10 +172,20 @@ body {
     padding: 12px;
     border-radius: 8px;
     margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
 }
 
-.epgCard strong {
-    font-size: 15px;
+.epgThumb {
+    width: 120px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #222;
+}
+
+.epgContent {
+    flex: 1;
 }
 
 .epgTime {
@@ -177,23 +195,8 @@ body {
     font-size: 13px;
 }
 
-/* RESPONSIVO BÁSICO */
-@media (max-width: 768px) {
-    #playerArea {
-        padding: 12px;
-    }
-
-    #playerLogo {
-        width: 48px;
-        height: 48px;
-    }
-
-    #playerName {
-        font-size: 18px;
-    }
-
-    .navBtn {
-        font-size: 26px;
-        padding: 4px 10px;
-    }
+/* Destaque do programa atual */
+.epgCard.current {
+    border-color: #00c853;
+    background: #0f2f0f;
 }
