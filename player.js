@@ -1,6 +1,7 @@
 /* ============================================================
-   TVPLAYER — PLAYER IPTV AUTOMÁTICO
-   M3U dinâmica + EPG XMLTV GZIP + Subcategorias dentro de "TV"
+   VIBE.PT — PLAYER IPTV AUTOMÁTICO
+   M3U dinâmica + EPG XMLTV GZIP + Grupos automáticos
+   Dropdown fixo à direita com ícones coloridos
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -80,10 +81,10 @@ function parseEPG(xmlText) {
 }
 
 /* ============================================================
-   3) ÍCONES DAS SUBCATEGORIAS
+   3) DROPDOWN DE GRUPOS (COM ÍCONES COLORIDOS)
    ============================================================ */
 
-const categoryIcons = {
+const groupIcons = {
     "Generalistas": "📺",
     "Notícias": "📰",
     "Desporto": "⚽",
@@ -98,26 +99,6 @@ const categoryIcons = {
     "Outros": "📦"
 };
 
-/* Ordem fixa */
-const categoryOrder = [
-    "Generalistas",
-    "Notícias",
-    "Desporto",
-    "Filmes & Séries",
-    "Música",
-    "Infantis",
-    "Cultura",
-    "Internacionais",
-    "Rádios",
-    "Adultos",
-    "4K",
-    "Outros"
-];
-
-/* ============================================================
-   4) DROPDOWN DE GRUPOS
-   ============================================================ */
-
 function buildGroupDropdown() {
     const dropdown = document.getElementById("groupDropdown");
 
@@ -128,7 +109,7 @@ function buildGroupDropdown() {
 
         const option = document.createElement("option");
         option.value = group;
-        option.textContent = group;
+        option.textContent = `${groupIcons[group] || "📦"} ${group}`;
         dropdown.appendChild(option);
     });
 
@@ -141,7 +122,7 @@ function buildGroupDropdown() {
 }
 
 /* ============================================================
-   5) LISTA DE CANAIS COM SUBCATEGORIAS
+   4) LISTA DE CANAIS
    ============================================================ */
 
 function buildChannelList() {
@@ -149,44 +130,6 @@ function buildChannelList() {
     list.innerHTML = "";
 
     const groupChannels = groups[currentGroup] || [];
-
-    if (currentGroup === "TV") {
-        const categories = {};
-
-        groupChannels.forEach(ch => {
-            const cat = ch.group || "Outros";
-            if (!categories[cat]) categories[cat] = [];
-            categories[cat].push(ch);
-        });
-
-        categoryOrder.forEach(cat => {
-            if (!categories[cat]) return;
-
-            const header = document.createElement("div");
-            header.className = "category-header";
-            header.innerHTML = `
-                <div class="category-title">${categoryIcons[cat] || "📦"} ${cat}</div>
-                <div class="category-line"></div>
-            `;
-            list.appendChild(header);
-
-            categories[cat].forEach(ch => {
-                const div = document.createElement("div");
-                div.className = "channel";
-
-                div.innerHTML = `
-                    <img src="${ch.logo}" alt="${ch.name}">
-                    <div class="channel-name">${ch.name}</div>
-                `;
-
-                div.onclick = () => loadChannel(ch);
-
-                list.appendChild(div);
-            });
-        });
-
-        return;
-    }
 
     groupChannels.forEach(ch => {
         const div = document.createElement("div");
@@ -204,7 +147,7 @@ function buildChannelList() {
 }
 
 /* ============================================================
-   6) CARREGAR CANAL
+   5) CARREGAR CANAL (HLS)
    ============================================================ */
 
 function loadChannel(ch) {
@@ -222,7 +165,7 @@ function loadChannel(ch) {
 }
 
 /* ============================================================
-   7) EPG DO CANAL
+   6) EPG DO CANAL ATUAL
    ============================================================ */
 
 function loadEPGForChannel(ch) {
@@ -266,7 +209,7 @@ function parseEPGDate(str) {
 }
 
 /* ============================================================
-   8) INICIAR
+   7) INICIAR TUDO
    ============================================================ */
 
 (async () => {
