@@ -33,8 +33,9 @@ function parseM3U(text) {
             const name = line.match(/,(.*)$/)?.[1] || "Sem nome";
             const logo = line.match(/tvg-logo="(.*?)"/)?.[1] || "";
             const group = line.match(/group-title="(.*?)"/)?.[1] || "Outros";
+            const tvgid = line.match(/tvg-id="(.*?)"/)?.[1] || "";
 
-            temp = { name, logo, group };
+            temp = { name, logo, group, tvgid };
         }
 
         else if (line.startsWith("http")) {
@@ -78,6 +79,8 @@ function parseEPG(xmlText) {
         if (!epgData[channel]) epgData[channel] = [];
         epgData[channel].push({ start, stop, title, desc });
     }
+
+    console.log("EPG carregado:", Object.keys(epgData).length, "canais");
 }
 
 /* ============================================================
@@ -147,7 +150,7 @@ function buildChannelList() {
 }
 
 /* ============================================================
-   5) CARREGAR CANAL (HLS)
+   5) CARREGAR CANAL (HLS + RÁDIOS)
    ============================================================ */
 
 function loadChannel(ch) {
@@ -162,18 +165,17 @@ function loadChannel(ch) {
                     ch.url.endsWith(".ogg");
 
     if (isRadio) {
-        // Mostrar overlay e esconder vídeo
         video.style.display = "none";
         radioOverlay.style.display = "flex";
 
         if (ch.logo && ch.logo.trim() !== "") {
             radioLogo.src = ch.logo;
+            radioLogo.classList.remove("no-logo");
         } else {
-            radioLogo.src = ""; // sem logo → ícone padrão via CSS
+            radioLogo.src = "";
             radioLogo.classList.add("no-logo");
         }
     } else {
-        // Mostrar vídeo normal
         radioOverlay.style.display = "none";
         video.style.display = "block";
 
@@ -190,13 +192,26 @@ function loadChannel(ch) {
 }
 
 /* ============================================================
-   6) EPG DO CANAL ATUAL
+   6) EPG DO CANAL ATUAL (CORRIGIDO)
    ============================================================ */
 
 function loadEPGForChannel(ch) {
     const epgBox = document.getElementById("epg");
 
-    const channelEPG = epgData[ch.name] || epgData[ch.tvgid] || [];
+    let channelEPG = [];
+
+    // 1) Tenta pelo tvg-id (correto)
+    if (ch.tvgid && epgData[ch.tvgid]) {
+        channelEPG = epgData[ch.tvgid];
+    }
+
+    // 2) Fallback por nome aproximado
+    if (channelEPG.length === 0) {
+        const key = Object.keys(epgData).find(k =>
+            k.toLowerCase().includes(ch.name.toLowerCase())
+        );
+        if (key) channelEPG = epgData[key];
+    }
 
     if (channelEPG.length === 0) {
         epgBox.innerHTML = "Sem EPG disponível";
