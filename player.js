@@ -12,16 +12,21 @@ let currentGroup = null;
 let currentIndex = 0;
 
 /* ÍCONES DAS CATEGORIAS */
-const categoryIcons = {
-    "Canais Nacionais": "https://cdn-icons-png.flaticon.com/512/2989/2989849.png",
-    "Desporto": "https://cdn-icons-png.flaticon.com/512/833/833314.png",
-    "Filmes": "https://cdn-icons-png.flaticon.com/512/3107/3107197.png",
-    "Séries": "https://cdn-icons-png.flaticon.com/512/4072/4072985.png",
-    "Infantil": "https://cdn-icons-png.flaticon.com/512/3659/3659898.png",
-    "Música": "https://cdn-icons-png.flaticon.com/512/727/727245.png",
-    "Notícias": "https://cdn-icons-png.flaticon.com/512/2965/2965879.png",
-    "Outros": "https://cdn-icons-png.flaticon.com/512/565/565654.png"
-};
+function getCategoryIcon(groupName) {
+    const g = (groupName || "").toLowerCase();
+
+    if (g.includes("tv")) return "📺";
+    if (g.includes("beach") || g.includes("praia")) return "🏖️";
+    if (g.includes("cam") || g.includes("camera")) return "🎥";
+    if (g.includes("moderação") || g.includes("moderacao")) return "🔥";
+    if (g.includes("radio") || g.includes("rádio")) return "📻";
+    if (g.includes("adult")) return "🔞";
+    if (g.includes("24h")) return "🕒";
+    if (g.includes("news") || g.includes("notícia")) return "📰";
+    if (g.includes("music") || g.includes("música")) return "🎵";
+
+    return "📡"; // fallback genérico
+}
 
 /* ============================
    CARREGAR M3U
