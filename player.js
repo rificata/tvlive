@@ -1,5 +1,5 @@
 /* ============================================================
-   PLAYER IPTV — COMPLETO E LIMPO
+   PLAYER IPTV — COMPLETO, COM SCROLL AUTO E MOBILE-FRIENDLY
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -12,7 +12,7 @@ let currentGroup = null;
 let currentIndex = 0;
 
 /* ============================================================
-   FUNÇÃO: ÍCONE PARA CATEGORIA REAL DO M3U
+   ÍCONES PARA CATEGORIAS REAIS
    ============================================================ */
 
 function getCategoryIcon(groupName) {
@@ -28,7 +28,7 @@ function getCategoryIcon(groupName) {
     if (g.includes("news") || g.includes("notícia")) return "📰";
     if (g.includes("music") || g.includes("música")) return "🎵";
 
-    return "📡"; // fallback genérico
+    return "📡";
 }
 
 /* ============================================================
@@ -146,6 +146,7 @@ function buildChannelScroller() {
         div.onclick = () => {
             currentIndex = i;
             loadChannel(ch);
+            centerChannelInScroller(div);
         };
 
         scroller.appendChild(div);
@@ -157,6 +158,15 @@ function buildChannelScroller() {
             scroller.appendChild(sep);
         }
     });
+}
+
+/* centrar canal selecionado no scroller (mais elegante) */
+function centerChannelInScroller(element) {
+    const scroller = document.getElementById("channelScroller");
+    const rect = element.getBoundingClientRect();
+    const parentRect = scroller.getBoundingClientRect();
+    const offset = rect.left - parentRect.left - (parentRect.width / 2) + (rect.width / 2);
+    scroller.scrollBy({ left: offset, behavior: "smooth" });
 }
 
 /* ============================================================
@@ -186,7 +196,7 @@ function loadChannel(ch) {
 }
 
 /* ============================================================
-   EPG: PROGRAMA ATUAL + CARTÕES
+   EPG: PROGRAMA ATUAL + CARTÕES + SCROLL AUTO
    ============================================================ */
 
 function loadEPGForChannel(ch) {
@@ -237,6 +247,8 @@ function loadEPGForChannel(ch) {
         desc.textContent = "";
     }
 
+    let currentCardElement = null;
+
     channelEPG.forEach(p => {
         const s = parseEPGDate(p.start);
         const e = parseEPGDate(p.stop);
@@ -246,6 +258,7 @@ function loadEPGForChannel(ch) {
 
         if (current && p.start === current.start && p.stop === current.stop) {
             card.classList.add("current");
+            currentCardElement = card;
         }
 
         const thumb = p.icon
@@ -269,6 +282,16 @@ function loadEPGForChannel(ch) {
 
         list.appendChild(card);
     });
+
+    /* SCROLL AUTOMÁTICO PARA O PROGRAMA ATUAL */
+    if (currentCardElement) {
+        setTimeout(() => {
+            currentCardElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 200);
+    }
 }
 
 /* ============================================================
@@ -291,7 +314,15 @@ document.getElementById("nextBtn").onclick = () => zap(1);
 function zap(dir) {
     const groupChannels = groups[currentGroup];
     currentIndex = (currentIndex + dir + groupChannels.length) % groupChannels.length;
-    loadChannel(groupChannels[currentIndex]);
+    const ch = groupChannels[currentIndex];
+    loadChannel(ch);
+
+    /* centrar também o canal atual no scroller */
+    const scroller = document.getElementById("channelScroller");
+    const items = scroller.getElementsByClassName("channelItem");
+    if (items[currentIndex]) {
+        centerChannelInScroller(items[currentIndex]);
+    }
 }
 
 /* ============================================================
