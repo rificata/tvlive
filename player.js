@@ -1,5 +1,5 @@
 /* ============================================================
-   VIBE.PT — PLAYER IPTV AUTOMÁTICO
+   TVPLAYER — PLAYER IPTV AUTOMÁTICO
    M3U dinâmica + EPG XMLTV GZIP + Subcategorias dentro de "TV"
    ============================================================ */
 
