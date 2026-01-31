@@ -1,5 +1,5 @@
 /* ============================================================
-   PLAYER IPTV — COMPLETO
+   PLAYER IPTV — COMPLETO E LIMPO
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -11,7 +11,10 @@ let epgData = {};
 let currentGroup = null;
 let currentIndex = 0;
 
-/* ÍCONES DAS CATEGORIAS */
+/* ============================================================
+   FUNÇÃO: ÍCONE PARA CATEGORIA REAL DO M3U
+   ============================================================ */
+
 function getCategoryIcon(groupName) {
     const g = (groupName || "").toLowerCase();
 
@@ -28,9 +31,9 @@ function getCategoryIcon(groupName) {
     return "📡"; // fallback genérico
 }
 
-/* ============================
+/* ============================================================
    CARREGAR M3U
-   ============================ */
+   ============================================================ */
 
 async function loadM3U() {
     const res = await fetch(M3U_URL);
@@ -64,9 +67,9 @@ function parseM3U(text) {
     }
 }
 
-/* ============================
+/* ============================================================
    CARREGAR EPG
-   ============================ */
+   ============================================================ */
 
 async function loadEPG() {
     const res = await fetch(EPG_URL);
@@ -96,35 +99,30 @@ function parseEPG(xmlText) {
     }
 }
 
-/* ============================
-   BARRA FIXA
-   ============================ */
+/* ============================================================
+   BARRA FIXA: CATEGORIAS + CANAIS
+   ============================================================ */
 
 function buildTopBar() {
     const select = document.getElementById("categorySelect");
 
     Object.keys(groups).forEach(group => {
         const opt = document.createElement("option");
+        const icon = getCategoryIcon(group);
         opt.value = group;
-        opt.textContent = group;
+        opt.textContent = `${icon} ${group}`;
         select.appendChild(opt);
     });
 
     select.onchange = () => {
         currentGroup = select.value;
         currentIndex = 0;
-
-        const icon = categoryIcons[currentGroup] || categoryIcons["Outros"];
-        select.style.backgroundImage = `url('${icon}')`;
-
         buildChannelScroller();
         loadChannel(groups[currentGroup][0]);
     };
 
-    currentGroup = select.value;
-
-    const initialIcon = categoryIcons[currentGroup] || categoryIcons["Outros"];
-    select.style.backgroundImage = `url('${initialIcon}')`;
+    currentGroup = Object.keys(groups)[0];
+    select.value = currentGroup;
 
     buildChannelScroller();
     loadChannel(groups[currentGroup][0]);
@@ -161,9 +159,9 @@ function buildChannelScroller() {
     });
 }
 
-/* ============================
+/* ============================================================
    PLAYER
-   ============================ */
+   ============================================================ */
 
 function loadChannel(ch) {
     const video = document.getElementById("videoPlayer");
@@ -187,9 +185,9 @@ function loadChannel(ch) {
     loadEPGForChannel(ch);
 }
 
-/* ============================
-   EPG COMPLETO
-   ============================ */
+/* ============================================================
+   EPG: PROGRAMA ATUAL + CARTÕES
+   ============================================================ */
 
 function loadEPGForChannel(ch) {
     const title = document.getElementById("epgTitle");
@@ -246,7 +244,7 @@ function loadEPGForChannel(ch) {
         const card = document.createElement("div");
         card.className = "epgCard";
 
-        if (current && p.title === current.title) {
+        if (current && p.start === current.start && p.stop === current.stop) {
             card.classList.add("current");
         }
 
@@ -273,9 +271,9 @@ function loadEPGForChannel(ch) {
     });
 }
 
-/* ============================
+/* ============================================================
    PARSE DATA
-   ============================ */
+   ============================================================ */
 
 function parseEPGDate(str) {
     return new Date(
@@ -283,9 +281,9 @@ function parseEPGDate(str) {
     ).getTime();
 }
 
-/* ============================
+/* ============================================================
    ZAPPING
-   ============================ */
+   ============================================================ */
 
 document.getElementById("prevBtn").onclick = () => zap(-1);
 document.getElementById("nextBtn").onclick = () => zap(1);
@@ -296,9 +294,9 @@ function zap(dir) {
     loadChannel(groupChannels[currentIndex]);
 }
 
-/* ============================
+/* ============================================================
    INICIAR
-   ============================ */
+   ============================================================ */
 
 (async () => {
     await loadM3U();
