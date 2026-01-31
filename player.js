@@ -1,8 +1,5 @@
 /* ============================================================
-   TVPLAYER — PLAYER IPTV AUTOMÁTICO
-   M3U dinâmica + EPG XMLTV GZIP + Grupos automáticos
-   Dropdown fixo à direita com ícones coloridos
-   Timeline EPG + próximos programas + rádios
+   PLAYER IPTV ULTRA PREMIUM — C2‑A (Dark Glass)
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -12,6 +9,7 @@ let channels = [];
 let groups = {};
 let epgData = {};
 let currentGroup = null;
+let currentIndex = 0;
 
 /* ============================================================
    1) CARREGAR M3U
@@ -50,7 +48,7 @@ function parseM3U(text) {
 }
 
 /* ============================================================
-   2) CARREGAR EPG (XMLTV GZIP)
+   2) CARREGAR EPG
    ============================================================ */
 
 async function loadEPG() {
@@ -78,28 +76,11 @@ function parseEPG(xmlText) {
         if (!epgData[channel]) epgData[channel] = [];
         epgData[channel].push({ start, stop, title, desc });
     }
-
-    console.log("EPG carregado:", Object.keys(epgData).length, "canais");
 }
 
 /* ============================================================
-   3) DROPDOWN DE GRUPOS (COM ÍCONES COLORIDOS)
+   3) DROPDOWN DE GRUPOS
    ============================================================ */
-
-const groupIcons = {
-    "Generalistas": "📺",
-    "Notícias": "📰",
-    "Desporto": "⚽",
-    "Filmes & Séries": "🎬",
-    "Música": "🎵",
-    "Infantis": "👶",
-    "Cultura": "📚",
-    "Internacionais": "🌍",
-    "Adultos": "🔞",
-    "Rádios": "📻",
-    "4K": "🖥️",
-    "Outros": "📦"
-};
 
 function buildGroupDropdown() {
     const dropdown = document.getElementById("groupDropdown");
@@ -107,11 +88,9 @@ function buildGroupDropdown() {
     dropdown.innerHTML = "";
 
     Object.keys(groups).forEach(group => {
-        if (groups[group].length === 0) return;
-
         const option = document.createElement("option");
         option.value = group;
-        option.textContent = `${groupIcons[group] || "📦"} ${group}`;
+        option.textContent = group;
         dropdown.appendChild(option);
     });
 
@@ -133,98 +112,67 @@ function buildChannelList() {
 
     const groupChannels = groups[currentGroup] || [];
 
-    groupChannels.forEach(ch => {
+    groupChannels.forEach((ch, i) => {
         const div = document.createElement("div");
         div.className = "channel";
 
         div.innerHTML = `
-            <img src="${ch.logo}" alt="${ch.name}">
+            <img src="${ch.logo}">
             <div class="channel-name">${ch.name}</div>
         `;
 
-        div.onclick = () => loadChannel(ch);
+        div.onclick = () => {
+            currentIndex = i;
+            loadChannel(ch);
+        };
 
         list.appendChild(div);
     });
 }
 
 /* ============================================================
-   5) CARREGAR CANAL (HLS + RÁDIOS COM OVERLAY)
+   5) CARREGAR CANAL
    ============================================================ */
 
 function loadChannel(ch) {
     const video = document.getElementById("videoPlayer");
-    const radioOverlay = document.getElementById("radioOverlay");
-    const radioLogo = document.getElementById("radioLogo");
+    const logoOverlay = document.getElementById("channelLogoOverlay");
+    const infoOverlay = document.getElementById("channelInfoOverlay");
 
-    const isRadio = ch.group.toLowerCase().includes("rádio") ||
-                    ch.group.toLowerCase().includes("radio") ||
-                    ch.url.endsWith(".mp3") ||
-                    ch.url.endsWith(".aac") ||
-                    ch.url.endsWith(".ogg");
-
-    // limpar estado anterior
     video.pause();
-    video.removeAttribute("src");
-    video.load();
+    video.src = "";
 
-    if (isRadio) {
-        // Rádio: overlay visível, vídeo invisível mas ativo
-        radioOverlay.style.display = "flex";
-        video.style.opacity = "0";
-
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(ch.url);
-            hls.attachMedia(video);
-        } else {
-            video.src = ch.url;
-        }
-
-        if (ch.logo && ch.logo.trim() !== "") {
-            radioLogo.src = ch.logo;
-            radioLogo.classList.remove("no-logo");
-        } else {
-            radioLogo.src = "";
-            radioLogo.classList.add("no-logo");
-        }
+    if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
     } else {
-        // TV: overlay escondido, vídeo visível
-        radioOverlay.style.display = "none";
-        video.style.opacity = "1";
-
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(ch.url);
-            hls.attachMedia(video);
-        } else {
-            video.src = ch.url;
-        }
+        video.src = ch.url;
     }
+
+    logoOverlay.src = ch.logo || "";
+    infoOverlay.innerHTML = `${ch.name}`;
 
     loadEPGForChannel(ch);
 }
 
 /* ============================================================
-   6) EPG DO CANAL ATUAL + TIMELINE + PRÓXIMOS
+   6) MINI‑EPG + TIMELINE + PRÓXIMOS
    ============================================================ */
 
 function loadEPGForChannel(ch) {
-    const epgBox = document.getElementById("epg");
+    const mini = document.getElementById("miniEPG");
     const timeline = document.getElementById("epgTimeline");
     const nextBox = document.getElementById("epgNext");
 
-    if (timeline) timeline.innerHTML = "";
-    if (nextBox) nextBox.innerHTML = "";
+    mini.innerHTML = "";
+    timeline.innerHTML = "";
+    nextBox.innerHTML = "";
 
     let channelEPG = [];
 
-    // 1) Tenta pelo tvg-id
-    if (ch.tvgid && epgData[ch.tvgid]) {
-        channelEPG = epgData[ch.tvgid];
-    }
+    if (ch.tvgid && epgData[ch.tvgid]) channelEPG = epgData[ch.tvgid];
 
-    // 2) Fallback por nome aproximado
     if (channelEPG.length === 0) {
         const key = Object.keys(epgData).find(k =>
             k.toLowerCase().includes(ch.name.toLowerCase())
@@ -233,108 +181,91 @@ function loadEPGForChannel(ch) {
     }
 
     if (channelEPG.length === 0) {
-        epgBox.innerHTML = "Sem EPG disponível";
+        mini.innerHTML = "Sem EPG disponível";
         return;
     }
 
     const now = Date.now();
 
-    // Programa atual
     const current = channelEPG.find(p => {
-        const start = parseEPGDate(p.start);
-        const stop = parseEPGDate(p.stop);
-        return now >= start && now <= stop;
+        const s = parseEPGDate(p.start);
+        const e = parseEPGDate(p.stop);
+        return now >= s && now <= e;
     });
 
     if (!current) {
-        epgBox.innerHTML = "Sem programa atual";
+        mini.innerHTML = "Sem programa atual";
         return;
     }
 
-    const start = parseEPGDate(current.start);
-    const stop = parseEPGDate(current.stop);
-    const progress = ((now - start) / (stop - start)) * 100;
+    const s = parseEPGDate(current.start);
+    const e = parseEPGDate(current.stop);
+    const pct = ((now - s) / (e - s)) * 100;
 
-    epgBox.innerHTML = `
+    document.getElementById("progressBar").style.width = pct + "%";
+
+    mini.innerHTML = `
         <strong>${current.title}</strong><br>
-        ${current.desc}<br>
-        <div class="epg-progress">
-            <div class="epg-progress-bar" style="width:${Math.max(0, Math.min(100, progress))}%"></div>
-        </div>
+        ${current.desc}
     `;
 
-    /* ===========================
-       TIMELINE HORIZONTAL
-       =========================== */
+    channelEPG.forEach(p => {
+        const s = parseEPGDate(p.start);
+        const e = parseEPGDate(p.stop);
 
-    if (timeline) {
-        channelEPG.forEach(p => {
-            const s = parseEPGDate(p.start);
-            const e = parseEPGDate(p.stop);
+        const block = document.createElement("div");
+        block.className = "epg-block";
 
-            const block = document.createElement("div");
-            block.className = "epg-block";
+        block.innerHTML = `
+            <div class="epg-block-title">${p.title}</div>
+            <div>${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+             - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+        `;
 
-            block.innerHTML = `
-                <div class="epg-block-title">${p.title}</div>
-                <div>${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-                 - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
-            `;
+        timeline.appendChild(block);
+    });
 
-            if (now >= s && now <= e) {
-                const pct = ((now - s) / (e - s)) * 100;
-                block.innerHTML += `
-                    <div class="epg-progress">
-                        <div class="epg-progress-bar" style="width:${Math.max(0, Math.min(100, pct))}%"></div>
-                    </div>
-                `;
-            }
+    const next = channelEPG.filter(p => parseEPGDate(p.start) > now).slice(0, 5);
 
-            timeline.appendChild(block);
-        });
-    }
+    next.forEach(p => {
+        const s = parseEPGDate(p.start);
+        const e = parseEPGDate(p.stop);
 
-    /* ===========================
-       PRÓXIMOS PROGRAMAS
-       =========================== */
-
-    if (nextBox) {
-        const next = channelEPG
-            .filter(p => parseEPGDate(p.start) > now)
-            .slice(0, 5);
-
-        next.forEach(p => {
-            const s = parseEPGDate(p.start);
-            const e = parseEPGDate(p.stop);
-
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <strong>${p.title}</strong><br>
-                ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-                - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-            `;
-            nextBox.appendChild(div);
-        });
-    }
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <strong>${p.title}</strong><br>
+            ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+            - ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+        `;
+        nextBox.appendChild(div);
+    });
 }
 
 /* ============================================================
-   7) PARSE DE DATA DO EPG
+   7) PARSE DE DATA
    ============================================================ */
 
 function parseEPGDate(str) {
-    const y = str.substring(0, 4);
-    const m = str.substring(4, 6);
-    const d = str.substring(6, 8);
-    const hh = str.substring(8, 10);
-    const mm = str.substring(10, 12);
-    const ss = str.substring(12, 14);
-
-    return new Date(`${y}-${m}-${d}T${hh}:${mm}:${ss}`).getTime();
+    return new Date(
+        `${str.substring(0,4)}-${str.substring(4,6)}-${str.substring(6,8)}T${str.substring(8,10)}:${str.substring(10,12)}:${str.substring(12,14)}`
+    ).getTime();
 }
 
 /* ============================================================
-   8) INICIAR TUDO
+   8) ZAPPING
+   ============================================================ */
+
+document.getElementById("btnPrev").onclick = () => zap(-1);
+document.getElementById("btnNext").onclick = () => zap(1);
+
+function zap(dir) {
+    const groupChannels = groups[currentGroup];
+    currentIndex = (currentIndex + dir + groupChannels.length) % groupChannels.length;
+    loadChannel(groupChannels[currentIndex]);
+}
+
+/* ============================================================
+   9) INICIAR
    ============================================================ */
 
 (async () => {

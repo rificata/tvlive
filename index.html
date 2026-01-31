@@ -6,36 +6,18 @@
 
     <title>tvplayer</title>
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="icons/icon-192.png">
-
-    <!-- Manifest PWA -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Tema da app (Android) -->
-    <meta name="theme-color" content="#000000">
-
-    <!-- iOS PWA -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- HLS.js -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 
 <body>
 
-    <!-- BARRA FIXA COM DROPDOWN -->
+    <!-- BARRA FIXA -->
     <div id="groupBar">
         <span id="groupBar-label">Grupo:</span>
         <select id="groupDropdown"></select>
     </div>
 
-    <!-- LAYOUT PRINCIPAL -->
     <div id="app">
 
         <!-- LISTA DE CANAIS -->
@@ -43,44 +25,38 @@
             <div id="channel-list"></div>
         </div>
 
-        <!-- PLAYER + EPG -->
+        <!-- PLAYER -->
         <div id="player-container">
-            <div id="video-wrapper">
-                <!-- OVERLAY PARA RÁDIOS -->
-                <div id="radioOverlay">
-                    <img id="radioLogo" alt="Rádio">
-                </div>
 
-                <!-- VÍDEO -->
+            <div id="video-wrapper">
+                <img id="channelLogoOverlay" alt="Logo do canal">
+                <div id="channelInfoOverlay"></div>
+                <div id="progressOverlay"><div id="progressBar"></div></div>
+
+                <button id="btnPrev" class="zapBtn">⟨</button>
+                <button id="btnNext" class="zapBtn">⟩</button>
+
                 <video id="videoPlayer" controls autoplay></video>
             </div>
 
-            <!-- EPG ATUAL -->
-            <div id="epg">A carregar EPG…</div>
+            <!-- MINI‑EPG FORA DO VÍDEO -->
+            <div id="miniEPG"></div>
 
-            <!-- TIMELINE COMPLETA DO EPG -->
+            <!-- TIMELINE COMPLETA -->
             <div id="epgTimelineContainer">
                 <div id="epgTimeline"></div>
             </div>
 
-            <!-- LISTA DE PRÓXIMOS PROGRAMAS -->
+            <!-- PRÓXIMOS PROGRAMAS -->
             <div id="epgNextContainer">
                 <h3>Próximos programas</h3>
                 <div id="epgNext"></div>
             </div>
+
         </div>
 
     </div>
 
-    <!-- PLAYER.JS -->
     <script src="player.js"></script>
-
-    <!-- SERVICE WORKER -->
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js");
-        }
-    </script>
-
 </body>
 </html>
