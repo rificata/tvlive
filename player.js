@@ -1,5 +1,5 @@
 /* ============================================================
-   PLAYER IPTV — BASE LIMPA
+   PLAYER IPTV — BASE LIMPA E MODULAR
    ============================================================ */
 
 const M3U_URL = "https://raw.githubusercontent.com/LITUATUI/M3UPT/main/M3U/M3UPT.m3u";
@@ -79,12 +79,11 @@ function parseEPG(xmlText) {
 }
 
 /* ============================
-   BARRA FIXA
+   BARRA FIXA: CATEGORIAS + CANAIS
    ============================ */
 
 function buildTopBar() {
     const select = document.getElementById("categorySelect");
-    const scroller = document.getElementById("channelScroller");
 
     Object.keys(groups).forEach(group => {
         const opt = document.createElement("option");
@@ -95,11 +94,18 @@ function buildTopBar() {
 
     select.onchange = () => {
         currentGroup = select.value;
+        currentIndex = 0;
         buildChannelScroller();
+        const ch = groups[currentGroup][currentIndex];
+        loadChannel(ch);
     };
 
     currentGroup = select.value;
     buildChannelScroller();
+
+    // Carregar primeiro canal do grupo inicial
+    const firstChannel = groups[currentGroup][0];
+    loadChannel(firstChannel);
 }
 
 function buildChannelScroller() {
@@ -113,7 +119,7 @@ function buildChannelScroller() {
         div.className = "channelItem";
 
         div.innerHTML = `
-            <img src="${ch.logo}">
+            <img src="${ch.logo}" alt="">
             <span>${ch.name}</span>
         `;
 
@@ -153,28 +159,38 @@ function loadChannel(ch) {
         video.src = ch.url;
     }
 
-    logo.src = ch.logo;
-    name.textContent = ch.name;
+    logo.src = ch.logo || "";
+    name.textContent = ch.name || "";
 
     loadEPGForChannel(ch);
 }
 
 /* ============================
-   EPG SIMPLES
+   EPG: PROGRAMA ATUAL + CARTÕES
    ============================ */
 
 function loadEPGForChannel(ch) {
     const title = document.getElementById("epgTitle");
     const desc = document.getElementById("epgDesc");
-    const overlay = document.getElementById("epgOverlayContent");
+    const list = document.getElementById("epgList");
+    const progressBar = document.getElementById("playerProgressBar");
 
     title.textContent = "";
     desc.textContent = "";
-    overlay.innerHTML = "";
+    list.innerHTML = "";
+    progressBar.style.width = "0%";
 
     let channelEPG = [];
 
-    if (ch.tvgid && epgData[ch.tvgid]) channelEPG = epgData[ch.tvgid];
+    if (ch.tvgid && epgData[ch.tvgid]) {
+        channelEPG = epgData[ch.tvgid];
+    } else {
+        // fallback: tentar por nome
+        const key = Object.keys(epgData).find(k =>
+            k.toLowerCase().includes(ch.name.toLowerCase())
+        );
+        if (key) channelEPG = epgData[key];
+    }
 
     if (channelEPG.length === 0) {
         title.textContent = "Sem EPG disponível";
@@ -183,53 +199,72 @@ function loadEPGForChannel(ch) {
 
     const now = Date.now();
 
+    // Programa atual
     const current = channelEPG.find(p => {
         const s = parseEPGDate(p.start);
         const e = parseEPGDate(p.stop);
         return now >= s && now <= e;
     });
 
-    if (!current) {
+    if (current) {
+        const s = parseEPGDate(current.start);
+        const e = parseEPGDate(current.stop);
+        const pct = ((now - s) / (e - s)) * 100;
+
+        title.textContent = current.title;
+        desc.textContent = current.desc || "";
+        progressBar.style.width = Math.min(Math.max(pct, 0), 100) + "%";
+    } else {
         title.textContent = "Sem programa atual";
-        return;
+        desc.textContent = "";
     }
 
-    title.textContent = current.title;
-    desc.textContent = current.desc;
-
+    // Programação completa (cartões)
     channelEPG.forEach(p => {
         const s = parseEPGDate(p.start);
         const e = parseEPGDate(p.stop);
 
-        const div = document.createElement("div");
-        div.innerHTML = `
+        const card = document.createElement("div");
+        card.className = "epgCard";
+
+        card.innerHTML = `
+            <span class="epgTime">
+                ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                -
+                ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+            </span>
+
             <strong>${p.title}</strong><br>
-            ${new Date(s).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-            -
-            ${new Date(e).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-            <br><br>
+
+            <span>${p.desc || ""}</span>
         `;
-        overlay.appendChild(div);
+
+        list.appendChild(card);
     });
 }
 
 /* ============================
-   PROGRAMAÇÃO COMPLETA
-   ============================ */
-
-document.getElementById("epgToggleBtn").onclick = () => {
-    const overlay = document.getElementById("epgOverlay");
-    overlay.style.display = overlay.style.display === "flex" ? "none" : "flex";
-};
-
-/* ============================
-   PARSE DATA
+   PARSE DATA EPG
    ============================ */
 
 function parseEPGDate(str) {
     return new Date(
         `${str.substring(0,4)}-${str.substring(4,6)}-${str.substring(6,8)}T${str.substring(8,10)}:${str.substring(10,12)}:${str.substring(12,14)}`
     ).getTime();
+}
+
+/* ============================
+   ZAPPING (ANTERIOR / SEGUINTE)
+   ============================ */
+
+document.getElementById("prevBtn").onclick = () => zap(-1);
+document.getElementById("nextBtn").onclick = () => zap(1);
+
+function zap(dir) {
+    const groupChannels = groups[currentGroup];
+    currentIndex = (currentIndex + dir + groupChannels.length) % groupChannels.length;
+    const ch = groupChannels[currentIndex];
+    loadChannel(ch);
 }
 
 /* ============================

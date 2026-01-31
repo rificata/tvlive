@@ -1,11 +1,21 @@
 /* RESET */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #000; color: #fff; font-family: Arial, sans-serif; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-/* BARRA FIXA */
+body {
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+/* BARRA FIXA COMPACTA */
 #topBar {
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 60px;
     background: rgba(0,0,0,0.75);
@@ -39,9 +49,12 @@ body { background: #000; color: #fff; font-family: Arial, sans-serif; }
     gap: 6px;
     cursor: pointer;
     opacity: 0.8;
+    font-size: 14px;
 }
 
-.channelItem:hover { opacity: 1; }
+.channelItem:hover {
+    opacity: 1;
+}
 
 .channelItem img {
     width: 32px;
@@ -83,6 +96,7 @@ body { background: #000; color: #fff; font-family: Arial, sans-serif; }
     max-height: 60vh;
     border-radius: 8px;
     border: 1px solid #333;
+    background: #000;
 }
 
 /* BOTÕES DE NAVEGAÇÃO */
@@ -97,12 +111,18 @@ body { background: #000; color: #fff; font-family: Arial, sans-serif; }
     padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
+    z-index: 10;
 }
 
-#prevBtn { left: 30px; }
-#nextBtn { right: 30px; }
+#prevBtn {
+    left: 30px;
+}
 
-/* PROGRESSO */
+#nextBtn {
+    right: 30px;
+}
+
+/* PROGRESSO DO PLAYER */
 #playerProgress {
     width: 100%;
     height: 4px;
@@ -123,35 +143,57 @@ body { background: #000; color: #fff; font-family: Arial, sans-serif; }
 
 #epgSimple h2 {
     margin-bottom: 6px;
+    font-size: 20px;
 }
 
-/* BOTÃO PROGRAMAÇÃO */
-#epgToggleBtn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
+/* PROGRAMAÇÃO COMPLETA */
+#epgFull {
+    padding: 20px;
+    border-top: 1px solid #222;
+    background: #050505;
+}
+
+#epgFull h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.epgCard {
     background: #111;
-    border: 1px solid #444;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
+    border: 1px solid #222;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 
-/* OVERLAY PROGRAMAÇÃO COMPLETA */
-#epgOverlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(6px);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
+.epgCard strong {
+    font-size: 15px;
 }
 
-#epgOverlayContent {
-    max-width: 800px;
-    max-height: 80vh;
-    overflow-y: auto;
+.epgTime {
+    opacity: 0.7;
+    margin-bottom: 4px;
+    display: block;
+    font-size: 13px;
+}
+
+/* RESPONSIVO BÁSICO */
+@media (max-width: 768px) {
+    #playerArea {
+        padding: 12px;
+    }
+
+    #playerLogo {
+        width: 48px;
+        height: 48px;
+    }
+
+    #playerName {
+        font-size: 18px;
+    }
+
+    .navBtn {
+        font-size: 26px;
+        padding: 4px 10px;
+    }
 }

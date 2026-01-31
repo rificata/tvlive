@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tvplayer</title>
+    <title>Vibe TV</title>
 
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -14,7 +14,6 @@
     <!-- BARRA FIXA COMPACTA -->
     <div id="topBar">
         <select id="categorySelect"></select>
-
         <div id="channelScroller"></div>
     </div>
 
@@ -22,7 +21,7 @@
     <div id="playerArea">
 
         <div id="playerHeader">
-            <img id="playerLogo">
+            <img id="playerLogo" alt="Logo do canal">
             <span id="playerName"></span>
         </div>
 
@@ -42,12 +41,10 @@
         <p id="epgDesc"></p>
     </div>
 
-    <!-- BOTÃO PARA PROGRAMAÇÃO COMPLETA -->
-    <button id="epgToggleBtn">Programação</button>
-
-    <!-- OVERLAY DA PROGRAMAÇÃO COMPLETA -->
-    <div id="epgOverlay">
-        <div id="epgOverlayContent"></div>
+    <!-- PROGRAMAÇÃO COMPLETA -->
+    <div id="epgFull">
+        <h3>Programação completa</h3>
+        <div id="epgList"></div>
     </div>
 
     <script src="player.js"></script>
